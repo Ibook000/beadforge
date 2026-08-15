@@ -25,15 +25,18 @@ export function createPreview(canvas: HTMLCanvasElement, stage: HTMLElement): Pr
   let lastCellSize = 1;
   let lastOrigin = { x: 0, y: 0 };
 
-  /** 当前画布实际所在容器的尺寸（全屏时是 fs-canvas-area） */
+  /** 当前画布实际所在容器的尺寸（全屏时是 fs-canvas-area，普通模式是 stage） */
   function containerSize(): { w: number; h: number } {
-    const parent = canvas.parentElement;
-    if (parent) {
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
-      if (w > 0 && h > 0) return { w, h };
+    // 向上查找 .fs-canvas-area 或回到 stage
+    let el: HTMLElement | null = canvas.parentElement;
+    while (el) {
+      if (el.classList.contains('fs-canvas-area') || el.id === 'stage') break;
+      el = el.parentElement;
     }
-    return { w: stage.clientWidth, h: stage.clientHeight };
+    el = el || stage;
+    const w = el.clientWidth;
+    const h = el.clientHeight;
+    return { w: Math.max(80, w), h: Math.max(80, h) };
   }
 
   return {

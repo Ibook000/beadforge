@@ -228,7 +228,27 @@ body::after {
   max-height: calc(100% - 32px);
 }
 
-/* 全屏拼豆模式（旧 stage.fullscreen 已废弃，改用 #fs-overlay） */
+/* 全屏拼豆模式：stage 撑满整屏，canvas 大图渲染 */
+.stage.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background: #fff8fb;
+  box-shadow: none;
+  padding: 0;
+}
+
+.stage.fullscreen canvas {
+  max-width: none;
+  max-height: none;
+  cursor: crosshair;
+  border-radius: 0;
+  box-shadow: none;
+  transform-origin: center center;
+}
 
 /* 全屏拼豆按钮（stage 右上角悬浮） */
 .fullscreen-btn {
@@ -259,20 +279,11 @@ body::after {
 }
 
 /* 全屏拼豆模式：stage 铺满整屏 */
-/* ===== 全屏拼豆覆盖层 ===== */
-#fs-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  display: flex;
-  flex-direction: column;
-  background:
-    radial-gradient(600px 400px at 10% -10%, rgba(255, 182, 203, 0.4), transparent 60%),
-    radial-gradient(600px 400px at 110% 110%, rgba(217, 194, 245, 0.5), transparent 60%),
-    #fff8fb;
-}
-
+/* ===== 全屏拼豆：顶栏 + 右侧面板（浮动在 stage.fullscreen 之上） ===== */
 .fs-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -282,6 +293,7 @@ body::after {
   backdrop-filter: blur(10px);
   border-bottom: 1.5px solid var(--border);
   flex-shrink: 0;
+  pointer-events: auto;
 }
 
 .fs-title {
@@ -347,41 +359,12 @@ body::after {
   transform: scale(1.1);
 }
 
-.fs-body {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
-
-/* 画布区域 —— 支持缩放拖拽 */
-.fs-canvas-area {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fs-zoom-wrap {
-  display: block;
-  transition: transform 0.05s linear;
-  transform-origin: center center;
-}
-
-.fs-zoom-wrap canvas {
-  display: block;
-  box-shadow: 0 6px 24px rgba(60, 40, 70, 0.18);
-  border-radius: 10px;
-  cursor: grab;
-}
-
-.fs-zoom-wrap canvas.dragging {
-  cursor: grabbing;
-}
-
-/* 右侧色号选择面板 */
+/* 右侧色号选择面板（浮动在 stage.fullscreen 之上，非全屏时隐藏） */
 .fs-sidebar {
+  position: fixed;
+  top: 60px; right: 0;
+  bottom: 0;
+  z-index: 1000;
   width: 216px;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.88);
@@ -390,6 +373,7 @@ body::after {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  pointer-events: auto;
 }
 
 .fs-sidebar-header {

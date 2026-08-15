@@ -153,9 +153,9 @@ window.addEventListener('resize', () => {
   if (s.grid) renderPreview();
 });
 
-// ---- 全屏拼豆模式（缩放 + 右侧面板） ----
-const fsOverlay = document.getElementById('fs-overlay') as HTMLElement;
-const fsZoomWrap = document.getElementById('fsZoomWrap') as HTMLElement;
+// ---- 全屏拼豆模式（stage 撑满 + 缩放 + 右侧面板） ----
+const fsTopbar = document.getElementById('fsTopbar') as HTMLElement;
+const fsSidebar = document.getElementById('fsSidebar') as HTMLElement;
 const fsSidebarList = document.getElementById('fsSidebarList') as HTMLElement;
 const fsZoomPct = document.getElementById('fsZoomPct') as HTMLElement;
 const fsClose = document.getElementById('fsClose') as HTMLElement;
@@ -170,7 +170,8 @@ let fsDragLastX = 0;
 let fsDragLastY = 0;
 
 function applyFsTransform(): void {
-  fsZoomWrap.style.transform = `translate(${fsPanX}px, ${fsPanY}px) scale(${fsZoom})`;
+  // 缩放画布本身（保留大图，transform 叠加）
+  canvas.style.transform = `translate(${fsPanX}px, ${fsPanY}px) scale(${fsZoom})`;
   fsZoomPct.textContent = `${Math.round(fsZoom * 100)}%`;
 }
 
@@ -207,29 +208,29 @@ function renderFsSidebar(): void {
 function setFullscreen(on: boolean): void {
   store.set({ fullscreen: on });
   if (on) {
-    // 显示全屏覆盖层，把 canvas 移入缩放容器
-    fsOverlay.style.display = 'flex';
-    fsZoomWrap.appendChild(canvas);
+    // stage 撑满整屏（canvas 留原地），叠加顶栏 + 右侧面板
+    stage.classList.add('fullscreen');
+    fsTopbar.style.display = 'flex';
+    fsSidebar.style.display = 'flex';
     fsZoom = 1; fsPanX = 0; fsPanY = 0;
     applyFsTransform();
-    // 渲染右侧面板
     renderFsSidebar();
-    // 标题改回全屏状态
     fsBtn.title = '退出全屏 (Esc)';
     fsBtn.textContent = '✕';
     requestAnimationFrame(() => renderPreview());
   } else {
-    // 隐藏全屏覆盖层，把 canvas 移回 stage
-    fsOverlay.style.display = 'none';
-    stage.appendChild(canvas);
+    stage.classList.remove('fullscreen');
+    fsTopbar.style.display = 'none';
+    fsSidebar.style.display = 'none';
+    canvas.style.transform = '';
     fsBtn.title = '全屏拼豆模式';
     fsBtn.textContent = '⛶';
     requestAnimationFrame(() => renderPreview());
   }
 }
 
-// 全屏缩放：滚轮
-fsZoomWrap.addEventListener('wheel', (e) => {
+// 全屏缩放：滚轮（仅在 stage.fullscreen 时）
+stage.addEventListener('wheel', (e) => {
   if (!store.get().fullscreen) return;
   e.preventDefault();
   const delta = e.deltaY > 0 ? -0.1 : 0.1;
@@ -237,15 +238,15 @@ fsZoomWrap.addEventListener('wheel', (e) => {
   applyFsTransform();
 }, { passive: false });
 
-// 全屏拖拽平移
-fsZoomWrap.addEventListener('pointerdown', (e) => {
+// 全屏拖拽平移（鼠标中键/在画布外区域拖动）
+stage.addEventListener('pointerdown', (e) => {
   if (!store.get().fullscreen) return;
-  // 忽略如果点击的是 canvas 内部（编辑模式），只在画布外/空白区域拖拽
+  // 只在画布外的舞台空白区域开启拖拽平移
+  if (e.target === canvas) return;
   fsDragging = true;
   fsDragLastX = e.clientX;
   fsDragLastY = e.clientY;
-  fsZoomWrap.querySelector('canvas')?.classList.add('dragging');
-  fsZoomWrap.setPointerCapture(e.pointerId);
+  stage.setPointerCapture(e.pointerId);
 });
 document.addEventListener('pointermove', (e) => {
   if (!fsDragging) return;
@@ -257,7 +258,6 @@ document.addEventListener('pointermove', (e) => {
 });
 document.addEventListener('pointerup', () => {
   fsDragging = false;
-  fsZoomWrap.querySelector('canvas')?.classList.remove('dragging');
 });
 
 // 缩放按钮
