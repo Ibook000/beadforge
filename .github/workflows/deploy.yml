@@ -30,6 +30,9 @@ jobs:
 
       - run: npm ci
 
+      # 先跑测试，回归直接拦截
+      - run: npm test
+
       - run: npm run build
 
       - name: Setup Pages
