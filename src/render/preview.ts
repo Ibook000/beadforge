@@ -25,11 +25,23 @@ export function createPreview(canvas: HTMLCanvasElement, stage: HTMLElement): Pr
   let lastCellSize = 1;
   let lastOrigin = { x: 0, y: 0 };
 
+  /** 当前画布实际所在容器的尺寸（全屏时是 fs-canvas-area） */
+  function containerSize(): { w: number; h: number } {
+    const parent = canvas.parentElement;
+    if (parent) {
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      if (w > 0 && h > 0) return { w, h };
+    }
+    return { w: stage.clientWidth, h: stage.clientHeight };
+  }
+
   return {
     render(grid, palette, opts, highlight) {
+      const { w: availW0, h: availH0 } = containerSize();
       const pad = 28;
-      const availW = Math.max(80, stage.clientWidth - pad * 2);
-      const availH = Math.max(80, stage.clientHeight - pad * 2);
+      const availW = Math.max(80, availW0 - pad * 2);
+      const availH = Math.max(80, availH0 - pad * 2);
       // showCoords 会在四边各留 1.2 格的边距
       const marginCells = opts.showCoords ? 2.4 : 0;
       const cellSize = Math.max(

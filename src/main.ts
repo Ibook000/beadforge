@@ -7,6 +7,7 @@ import { mountEditor } from './ui/editor';
 import { createPreview } from './render/preview';
 import { buildGrid } from './pipeline/build';
 import { getPalette } from './palette/registry';
+import { computeStats } from './model/stats';
 import { PatchHistory } from './model/patch';
 import { saveArchive, loadArchive } from './model/persist';
 import { loadImageDataUrl } from './ui/imageLoad';
@@ -152,22 +153,121 @@ window.addEventListener('resize', () => {
   if (s.grid) renderPreview();
 });
 
-// ---- 全屏拼豆模式 ----
+// ---- 全屏拼豆模式（缩放 + 右侧面板） ----
+const fsOverlay = document.getElementById('fs-overlay') as HTMLElement;
+const fsZoomWrap = document.getElementById('fsZoomWrap') as HTMLElement;
+const fsSidebarList = document.getElementById('fsSidebarList') as HTMLElement;
+const fsZoomPct = document.getElementById('fsZoomPct') as HTMLElement;
+const fsClose = document.getElementById('fsClose') as HTMLElement;
+const fsZoomIn = document.getElementById('fsZoomIn') as HTMLButtonElement;
+const fsZoomOut = document.getElementById('fsZoomOut') as HTMLButtonElement;
+
+let fsZoom = 1;
+let fsPanX = 0;
+let fsPanY = 0;
+let fsDragging = false;
+let fsDragLastX = 0;
+let fsDragLastY = 0;
+
+function applyFsTransform(): void {
+  fsZoomWrap.style.transform = `translate(${fsPanX}px, ${fsPanY}px) scale(${fsZoom})`;
+  fsZoomPct.textContent = `${Math.round(fsZoom * 100)}%`;
+}
+
+/** 填充全屏右侧面板的颜色列表 */
+function renderFsSidebar(): void {
+  const s = store.get();
+  if (!s.grid) return;
+  const palette = getPalette(s.grid.paletteId);
+  const stats = computeStats(s.grid, palette);
+  const highlight = s.highlightBead;
+
+  fsSidebarList.innerHTML = stats.usages
+    .map(
+      (u) =>
+        `<div class="fs-color-item${u.beadIndex === highlight ? ' active' : ''}" data-bead="${u.beadIndex}">
+          <span class="fs-color-swatch" style="background:${u.bead.hex}"></span>
+          <span class="fs-color-info">
+            <span class="fs-color-code">${u.bead.code}</span>
+            <span class="fs-color-count">×${u.count} 颗</span>
+          </span>
+        </div>`,
+    )
+    .join('');
+
+  fsSidebarList.querySelectorAll<HTMLElement>('.fs-color-item').forEach((el) => {
+    el.addEventListener('click', () => {
+      const bead = Number(el.dataset.bead);
+      store.set({ highlightBead: store.get().highlightBead === bead ? null : bead });
+      renderFsSidebar();
+    });
+  });
+}
+
 function setFullscreen(on: boolean): void {
   store.set({ fullscreen: on });
   if (on) {
-    stage.classList.add('fullscreen');
+    // 显示全屏覆盖层，把 canvas 移入缩放容器
+    fsOverlay.style.display = 'flex';
+    fsZoomWrap.appendChild(canvas);
+    fsZoom = 1; fsPanX = 0; fsPanY = 0;
+    applyFsTransform();
+    // 渲染右侧面板
+    renderFsSidebar();
+    // 标题改回全屏状态
     fsBtn.title = '退出全屏 (Esc)';
     fsBtn.textContent = '✕';
+    requestAnimationFrame(() => renderPreview());
   } else {
-    stage.classList.remove('fullscreen');
+    // 隐藏全屏覆盖层，把 canvas 移回 stage
+    fsOverlay.style.display = 'none';
+    stage.appendChild(canvas);
     fsBtn.title = '全屏拼豆模式';
     fsBtn.textContent = '⛶';
+    requestAnimationFrame(() => renderPreview());
   }
-  // 尺寸变化后重渲染
-  requestAnimationFrame(() => renderPreview());
 }
 
+// 全屏缩放：滚轮
+fsZoomWrap.addEventListener('wheel', (e) => {
+  if (!store.get().fullscreen) return;
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.1 : 0.1;
+  fsZoom = Math.max(0.25, Math.min(4, fsZoom + delta));
+  applyFsTransform();
+}, { passive: false });
+
+// 全屏拖拽平移
+fsZoomWrap.addEventListener('pointerdown', (e) => {
+  if (!store.get().fullscreen) return;
+  // 忽略如果点击的是 canvas 内部（编辑模式），只在画布外/空白区域拖拽
+  fsDragging = true;
+  fsDragLastX = e.clientX;
+  fsDragLastY = e.clientY;
+  fsZoomWrap.querySelector('canvas')?.classList.add('dragging');
+  fsZoomWrap.setPointerCapture(e.pointerId);
+});
+document.addEventListener('pointermove', (e) => {
+  if (!fsDragging) return;
+  fsPanX += e.clientX - fsDragLastX;
+  fsPanY += e.clientY - fsDragLastY;
+  fsDragLastX = e.clientX;
+  fsDragLastY = e.clientY;
+  applyFsTransform();
+});
+document.addEventListener('pointerup', () => {
+  fsDragging = false;
+  fsZoomWrap.querySelector('canvas')?.classList.remove('dragging');
+});
+
+// 缩放按钮
+fsZoomIn.addEventListener('click', () => { fsZoom = Math.min(4, fsZoom + 0.15); applyFsTransform(); });
+fsZoomOut.addEventListener('click', () => { fsZoom = Math.max(0.25, fsZoom - 0.15); applyFsTransform(); });
+
+// 关闭按钮
+fsClose.addEventListener('click', () => setFullscreen(false));
+
+// 全屏按钮（stage 内的 ⛶）
 fsBtn.addEventListener('click', () => setFullscreen(!store.get().fullscreen));
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && store.get().fullscreen) setFullscreen(false);

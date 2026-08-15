@@ -45,6 +45,28 @@
       </main>
       <aside class="panel right-panel" id="stats"></aside>
     </div>
+
+    <!-- 全屏拼豆模式的覆盖层 -->
+    <div id="fs-overlay" style="display:none">
+      <div class="fs-topbar">
+        <span class="fs-title">🧸 Picabead · 全屏拼豆</span>
+        <div class="fs-zoom-indicator">
+          <button id="fsZoomOut" class="fs-zoom-btn">−</button>
+          <span id="fsZoomPct">100%</span>
+          <button id="fsZoomIn" class="fs-zoom-btn">+</button>
+        </div>
+        <button id="fsClose" class="fs-close-btn">✕</button>
+      </div>
+      <div class="fs-body">
+        <div class="fs-canvas-area" id="fsCanvasArea">
+          <div class="fs-zoom-wrap" id="fsZoomWrap"></div>
+        </div>
+        <div class="fs-sidebar" id="fsSidebar">
+          <div class="fs-sidebar-header">🎨 颜色选择</div>
+          <div class="fs-sidebar-list" id="fsSidebarList"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
