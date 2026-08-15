@@ -109,6 +109,20 @@ mountStatsPanel(statsEl, store, {
       rebuild();
     }
   },
+  onEraseAll: async (beadIndex) => {
+    const s = store.get();
+    if (!s.grid) return;
+    const entries: Array<[number, number]> = [];
+    for (let i = 0; i < s.grid.cells.length; i++) {
+      if (s.grid.mask[i] === 1 && s.grid.cells[i] === beadIndex) {
+        entries.push([i, ERASE]);
+      }
+    }
+    if (entries.length > 0) {
+      history.batchApply(entries);
+      rebuild();
+    }
+  },
 });
 
 // 切色卡也会让 patch 的豆号失去意义

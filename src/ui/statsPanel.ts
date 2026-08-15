@@ -13,6 +13,8 @@ export interface StatsPanelHandlers {
   getBrush: () => number | null;
   /** 批量替换：把 fromIndex 色全部替换成当前画笔色 */
   onReplaceAll: (fromIndex: number, toIndex: number) => Promise<void>;
+  /** 批量擦除：把某色全部去豆 */
+  onEraseAll: (beadIndex: number) => Promise<void>;
   /** 切换拼图高亮色号（再点同一行 = 取消）。传 null 取消高亮 */
   onHighlight: (beadIndex: number | null) => void;
   /** 读当前高亮色号（供表格高亮当前行） */
@@ -81,7 +83,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
           <td class="num">${u.count}</td>
           <td class="num">${(u.ratio * 100).toFixed(1)}%</td>
           <td class="num">${(cumulative * 100).toFixed(0)}%</td>
-          <td><button class="btn-replace" data-replace="${u.beadIndex}" title="将此色全部替换为画笔颜色">替换</button></td>
+          <td><button class="btn-replace" data-replace="${u.beadIndex}" title="将此色全部替换为画笔颜色">替换</button><button class="btn-erase" data-erase="${u.beadIndex}" title="将此色全部擦除（去豆）">✕</button></td>
         </tr>`;
       })
       .join('');
@@ -143,6 +145,15 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
         if (toIndex === null) return;
         if (fromIndex === toIndex) return;
         void h.onReplaceAll(fromIndex, toIndex);
+      });
+    });
+
+    // 批量擦除：把某色的所有格子去豆
+    root.querySelectorAll<HTMLButtonElement>('.btn-erase').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const beadIndex = Number(btn.dataset.erase);
+        void h.onEraseAll(beadIndex);
       });
     });
 
