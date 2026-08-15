@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Picabead · 拼豆图纸生成器</title>
+    <meta name="description" content="把喜欢的照片、头像，变成一颗一颗的彩色拼豆图纸。纯浏览器本地处理，不上传服务器。" />
+    <link rel="icon" href="/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <img class="bead-logo" src="/logo.png" alt="Picabead 拼豆小熊 logo" />
+          <div class="brand-text">
+            <h1 class="brand-name">Picabead <span>拼豆图纸</span></h1>
+            <p class="brand-tag">把喜欢的画面，一颗一颗拼出来 🧸✨</p>
+          </div>
+        </div>
+        <div class="brand-dots" aria-hidden="true">
+          <span style="--c:#ff8fb0;--d:0s"></span>
+          <span style="--c:#d9c2f5;--d:.9s"></span>
+          <span style="--c:#ffd98a;--d:1.8s"></span>
+          <span style="--c:#a8dfc0;--d:.45s"></span>
+          <span style="--c:#ffafcc;--d:1.35s"></span>
+        </div>
+      </header>
+
+      <aside class="panel left-panel" id="controls"></aside>
+      <main class="stage" id="stage">
+        <button class="fullscreen-btn" id="fsBtn" title="全屏拼豆模式">⛶</button>
+        <div class="empty-hint" id="hint">
+          <div class="hint-heart" aria-hidden="true">
+            <span style="--c:#ff8fb0"></span><span style="--c:#d9c2f5"></span><span style="--c:#ff8fb0"></span><span style="--c:#ffd98a"></span><span style="--c:#d9c2f5"></span><span style="--c:#ff8fb0"></span>
+          </div>
+          <p class="hint-title">把照片变成拼豆图纸吧 ♡</p>
+          <p class="hint-sub">选一张图片或头像 → 挑选喜欢的颜色 → 生成专属图纸</p>
+        </div>
+      </main>
+      <aside class="panel right-panel" id="stats"></aside>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
