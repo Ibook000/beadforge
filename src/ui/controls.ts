@@ -98,6 +98,9 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
     <label class="inline"><input type="checkbox" id="showCoords" checked> 行列坐标</label>
     <label class="inline"><input type="checkbox" id="showMajorLines" checked> 每 10 格加粗</label>
     <label class="inline"><input type="checkbox" id="showBoardLines"> 底板分界虚线</label>
+
+    <h2>编辑工具</h2>
+    <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
   `;
   root.appendChild(section);
 
@@ -277,6 +280,16 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
   bindSheet('showCoords', (el) => ({ showCoords: el.checked }));
   bindSheet('showMajorLines', (el) => ({ showMajorLines: el.checked }));
   bindSheet('showBoardLines', (el) => ({ showBoardLines: el.checked }));
+
+  // 橡皮擦切换
+  const eraserCb = $<HTMLInputElement>('eraserToggle');
+  eraserCb.addEventListener('change', () => {
+    store.set({ eraser: eraserCb.checked });
+  });
+  // 外部（如 E 键）改变 eraser 时同步复选框状态
+  store.subscribe((s) => {
+    if (eraserCb.checked !== s.eraser) eraserCb.checked = s.eraser;
+  });
 
   // ---------- 几何回显 ----------
   store.subscribe((s) => {

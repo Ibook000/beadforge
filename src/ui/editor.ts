@@ -141,13 +141,25 @@ export function mountEditor(
 
   store.subscribe(describeBrush);
 
+  // 同步 store 的 eraser 状态（来自 UI 复选框）
+  store.subscribe((s) => {
+    if (s.eraser !== eraser) {
+      eraser = s.eraser;
+      describeBrush();
+    }
+  });
+
   return {
     getBrush: currentBrush,
     setBrush: (i: number) => {
       brush = i;
       setEraser(false); // 选色时退出橡皮擦
+      store.set({ eraser: false });
       describeBrush();
     },
-    setEraser,
+    setEraser: (on: boolean) => {
+      setEraser(on);
+      store.set({ eraser: on });
+    },
   };
 }

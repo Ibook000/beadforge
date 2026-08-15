@@ -24,6 +24,8 @@ export interface AppState {
   highlightBead: number | null;
   /** 是否处于全屏拼图模式 */
   fullscreen: boolean;
+  /** 橡皮擦模式（手机/平板无键盘，靠 UI 切换） */
+  eraser: boolean;
 }
 
 export interface Store {
@@ -44,6 +46,7 @@ function initialState(): AppState {
     patch: new Map(),
     highlightBead: null,
     fullscreen: false,
+    eraser: false,
   };
 }
 
