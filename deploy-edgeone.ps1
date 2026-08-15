@@ -20,22 +20,26 @@ Write-Host "构建成功！" -ForegroundColor Green
 
 # Step 2: Package
 Write-Step "2. 打包部署文件"
+# 直接打包 dist/ 目录（含 index.html + logo.png + assets/，JS 拆分构建）
 $packageDir = "deploy-package"
 if (Test-Path $packageDir) {
     Remove-Item -Recurse -Force $packageDir
 }
-New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
-Copy-Item "dist/index.html" "$packageDir/index.html" -Force
-Copy-Item "dist/logo.png" "$packageDir/logo.png" -Force
+Copy-Item -Recurse "dist" $packageDir
 Write-Host "打包完成！" -ForegroundColor Green
 
 # Step 3: Show instructions
 Write-Step "3. 部署说明"
 Write-Host @"
 
-部署包已生成在 deploy-package/ 目录：
-  deploy-package/index.html  (933KB)
-  deploy-package/logo.png    (52KB)
+部署包已生成在 deploy-package/ 目录（完整 dist 产物）：
+  deploy-package/index.html          (3KB 纯 HTML)
+  deploy-package/logo.png            (52KB)
+  deploy-package/assets/*.js         (应用 + 依赖库，多项)
+  deploy-package/assets/*.css        (样式)
+
+注意：必须把 deploy-package/ 里【所有文件】一起上传，
+不能只传 index.html（否则 JS/CSS 会 404）。
 
 ==========================================
           上传到 EdgeOne / COS
@@ -44,7 +48,7 @@ Write-Host @"
 方式一：COS 控制台手动上传
   1. 打开 https://console.cloud.tencent.com/cos
   2. 选择你的存储桶
-  3. 上传 deploy-package/ 里的两个文件
+  3. 上传 deploy-package/ 里的所有文件和 assets/ 目录
   4. 设置 index.html 的 Content-Type = text/html; charset=utf-8
   5. 开启"静态网站"
 

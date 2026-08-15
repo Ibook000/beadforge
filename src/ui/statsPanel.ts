@@ -129,8 +129,8 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
         // 设为画笔
         h.onPickBrush(bead);
         // 点同一行 = 取消高亮；点其他行 = 高亮该色
+        // store 变更会触发本组件 render 订阅，无需手动 render()（避免双重重绘）
         h.onHighlight(h.getHighlight() === bead ? null : bead);
-        render();
       });
     });
 

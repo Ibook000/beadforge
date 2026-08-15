@@ -108,8 +108,8 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
   const uploadBtn = $<HTMLButtonElement>('upload');
   uploadBtn.addEventListener('click', () => fileInput.click());
 
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
+  /** 处理单个图片文件：读取并更新 store（文件选择 / 拖拽共用） */
+  function handleFile(file: File | undefined): void {
     if (!file) return;
     uploadBtn.disabled = true;
     uploadBtn.textContent = '正在读取…';
@@ -131,7 +131,31 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
         uploadBtn.textContent = '🌸 选择一张图片';
         fileInput.value = ''; // 允许重复选同一个文件
       });
-  });
+  }
+
+  fileInput.addEventListener('change', () => handleFile(fileInput.files?.[0]));
+
+  // 拖拽上传：拖到控制面板顶层即可
+  const dragHosts = [section, uploadBtn];
+  function isImageFile(f: File | undefined): boolean {
+    return !!f && f.type.startsWith('image/');
+  }
+  for (const host of dragHosts) {
+    host.addEventListener('dragover', (e) => {
+      const dt = (e as DragEvent).dataTransfer;
+      if (dt && [...dt.types].includes('Files')) {
+        e.preventDefault();
+        uploadBtn.classList.add('drag-over');
+      }
+    });
+    host.addEventListener('dragleave', () => uploadBtn.classList.remove('drag-over'));
+    host.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadBtn.classList.remove('drag-over');
+      const f = (e as DragEvent).dataTransfer?.files?.[0];
+      if (isImageFile(f)) handleFile(f);
+    });
+  }
 
   // ---------- 颗粒度 ----------
   const widthInput = $<HTMLInputElement>('width');

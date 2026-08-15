@@ -132,4 +132,24 @@ describe('PatchHistory', () => {
     h.undo();
     expect(h.current.size).toBe(0);
   });
+
+  it('支持橡皮擦语义（-1 = 擦除该格）', () => {
+    const h = new PatchHistory();
+    h.apply(5, 12);
+    h.apply(5, -1); // 擦除第 5 格
+    expect(h.current.get(5)).toBe(-1);
+    h.undo(); // 撤销擦除，回到有豆状态
+    expect(h.current.get(5)).toBe(12);
+    h.undo(); // 撤销上一步
+    expect(h.current.has(5)).toBe(false);
+  });
+
+  it('橡皮擦后同一格改色应记为新一步', () => {
+    const h = new PatchHistory();
+    h.apply(5, -1);
+    h.apply(5, 7);
+    expect(h.current.get(5)).toBe(7);
+    h.undo();
+    expect(h.current.get(5)).toBe(-1);
+  });
 });

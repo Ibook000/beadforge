@@ -3,7 +3,7 @@ import { createStore } from './ui/state';
 import { mountControls, mountColorWarning } from './ui/controls';
 import { mountPalettePanel } from './ui/palettePanel';
 import { mountStatsPanel } from './ui/statsPanel';
-import { mountEditor } from './ui/editor';
+import { mountEditor, ERASE } from './ui/editor';
 import { createPreview } from './render/preview';
 import { buildGrid } from './pipeline/build';
 import { getPalette } from './palette/registry';
@@ -38,8 +38,14 @@ function rebuild(): void {
 
   const patch = history.current;
   for (const [i, bead] of patch) {
-    // 越界或落在空格上的 patch 直接忽略（换过颗粒度的残留）
-    if (i < grid.cells.length && grid.mask[i] === 1 && bead < getPalette(grid.paletteId).beads.length) {
+    if (i >= grid.cells.length) continue; // 越界残留直接忽略
+    // -1 = 橡皮擦：清空该格
+    if (bead === ERASE) {
+      if (grid.mask[i] === 1) grid.mask[i] = 0;
+      continue;
+    }
+    // 只在有豆格子上应用改色 patch
+    if (grid.mask[i] === 1 && bead < getPalette(grid.paletteId).beads.length) {
       grid.cells[i] = bead;
     }
   }
@@ -80,7 +86,11 @@ mountColorWarning(controlsEl);
 const editor = mountEditor(canvas, store, preview, history, rebuild);
 
 mountStatsPanel(statsEl, store, {
-  onPickBrush: (i) => editor.setBrush(i),
+  onPickBrush: (i) => {
+      editor.setBrush(i);
+      // 让统计面板画笔行背景及时刷新（re-render）
+      store.set({ patch: new Map(store.get().patch) });
+    },
   getBrush: () => editor.getBrush(),
   onHighlight: (i) => store.set({ highlightBead: i }),
   getHighlight: () => store.get().highlightBead,
@@ -319,3 +329,10 @@ async function tryRestore(): Promise<void> {
 }
 
 void tryRestore();
+
+// ---- PWA：注册 Service Worker（生产环境启用离线缓存） ----
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  navigator.serviceWorker
+    .register('./sw.js')
+    .catch((err) => console.warn('Service Worker 注册失败：', err));
+}

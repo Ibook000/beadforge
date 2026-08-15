@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import type { jsPDF as JsPDF } from 'jspdf';
 import type { BeadGrid } from '../model/grid';
 import type { Palette } from '../palette/types';
 import { type SheetOptions } from '../render/sheet';
@@ -30,7 +30,7 @@ const HEADER_H = 9;
 const FOOTER_H = 8;
 
 /** 在 PDF 页面右下角画水印文字（矢量，浅色半透明） */
-function drawPdfWatermark(doc: jsPDF): void {
+function drawPdfWatermark(doc: JsPDF): void {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   // 淡粉色水印
@@ -120,7 +120,7 @@ export function sliceGrid(grid: BeadGrid, p: PageSpec): BeadGrid {
  * 格子里的色号全是 ASCII（F5 / S01 / 80-15179 / H01），直接走矢量文字。
  */
 function textStrip(
-  doc: jsPDF,
+  doc: JsPDF,
   text: string,
   xMm: number,
   yMm: number,
@@ -149,7 +149,7 @@ function textStrip(
 
 /** 用矢量画一块图纸：色块 + 色号/符号 + 网格线 + 行列坐标 */
 function drawGridVector(
-  doc: jsPDF,
+  doc: JsPDF,
   slice: BeadGrid,
   palette: Palette,
   opts: SheetOptions,
@@ -255,6 +255,8 @@ export async function exportSheetPdf(
   opts: SheetOptions,
   filename: string,
 ): Promise<void> {
+  // 懒加载 jsPDF：只在用户点「导出 PDF」时才下载这个 ~830KB 库，首屏不加载
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
   const pages = planPages(grid, CELLS_X, CELLS_Y, OVERLAP);
   const cols = Math.max(...pages.map((p) => p.col)) + 1;

@@ -1,0 +1,18 @@
+{
+  "name": "Picabead · 拼豆图纸生成器",
+  "short_name": "Picabead",
+  "description": "把喜欢的照片、头像，变成一颗一颗的彩色拼豆图纸",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8fb",
+  "theme_color": "#ff8fb0",
+  "icons": [
+    {
+      "src": "./logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
