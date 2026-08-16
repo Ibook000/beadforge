@@ -67,9 +67,14 @@ export function mountPalettePanel(root: HTMLElement, store: Store, onRebuild: ()
         if (act === 'all') {
           commit([]);
         } else if (act === 'none') {
-          // 清成空集会让匹配器无候选可用，所以退回到一套基础色：
-          // 取整套色卡里按色号排前 24 个，够拼个简笔画
-          commit(palette.beads.slice(0, 24).map((_, k) => k));
+          // 取一套覆盖各色系的基础色（24 色均匀分布），而非前 N 个
+          const total = palette.beads.length;
+          const step = Math.max(1, Math.floor(total / 24));
+          const indices: number[] = [];
+          for (let i = 0; i < total && indices.length < 24; i += step) {
+            indices.push(i);
+          }
+          commit(indices);
         } else if (act === 'invert') {
           const cur = isAll ? new Set(palette.beads.map((_, k) => k)) : selected;
           const inverted = palette.beads.map((_, k) => k).filter((k) => !cur.has(k));
