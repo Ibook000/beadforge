@@ -33,10 +33,9 @@ const FOOTER_H = 8;
 function drawPdfWatermark(doc: JsPDF): void {
   if (!ENABLE_WATERMARK) return;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(52);
-  // 淡粉色水印
-  doc.setTextColor(232, 107, 146);
-  // 斜体：用 jsPDF 的 text 旋转（PDF 无真斜体，用旋转 -20 度近似）
+  doc.setFontSize(60);
+  // 粉红色水印，清晰可见
+  doc.setTextColor(255, 90, 140);
   doc.text(WATERMARK, PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: -20 });
   doc.setTextColor(0, 0, 0); // 复位
 }

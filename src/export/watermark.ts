@@ -4,8 +4,8 @@
 export const ENABLE_WATERMARK = true;
 
 export const WATERMARK = 'IBO0OK';
-export const WATERMARK_FONT = '900 48px ui-monospace, \"SF Mono\", Menlo, monospace';
-export const WATERMARK_COLOR = 'rgba(255, 110, 150, 0.35)';
+export const WATERMARK_FONT = '900 56px ui-monospace, \"SF Mono\", Menlo, monospace';
+export const WATERMARK_COLOR = 'rgba(255, 90, 140, 0.8)';
 
 /**
  * 在 canvas 中央画斜体旋转水印。
