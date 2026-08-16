@@ -30,7 +30,7 @@ export function exportCellSize(
 const EXPORT_LEGEND: LegendOptions = {
   style: 'grid',
   cols: 5,
-  itemHeight: 28,
+  itemHeight: 36,
 };
 
 /**

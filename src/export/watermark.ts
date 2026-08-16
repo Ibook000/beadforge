@@ -5,7 +5,7 @@ export const ENABLE_WATERMARK = true;
 
 export const WATERMARK = 'IBO0OK';
 export const WATERMARK_FONT = '900 48px ui-monospace, \"SF Mono\", Menlo, monospace';
-export const WATERMARK_COLOR = 'rgba(200, 120, 160, 0.18)';
+export const WATERMARK_COLOR = 'rgba(255, 110, 150, 0.35)';
 
 /**
  * 在 canvas 中央画斜体旋转水印。
@@ -28,7 +28,7 @@ export function drawWatermark(
   // 移到画布中央，旋转 -18 度，画斜体水印
   ctx.translate(width / 2, height / 2);
   ctx.rotate(-18 * Math.PI / 180);
-  ctx.font = `900 italic ${s}px ui-monospace, "SF Mono", Menlo, monospace`;
+  ctx.font = WATERMARK_FONT.replace('48px', `${s}px`);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = WATERMARK_COLOR;
