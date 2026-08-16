@@ -67,14 +67,21 @@ export function mountPalettePanel(root: HTMLElement, store: Store, onRebuild: ()
         if (act === 'all') {
           commit([]);
         } else if (act === 'none') {
-          // 取一套覆盖各色系的基础色（24 色均匀分布），而非前 N 个
+          // 取一套覆盖各色系的基础色：先包含黑白（最暗/最亮），再均匀采样补足到 24
           const total = palette.beads.length;
+          // 找最暗和最亮的颜色（接近黑/白）
+          const byLuma = palette.beads
+            .map((b, i) => ({ i, v: 0.2126 * b.rgb[0] + 0.7152 * b.rgb[1] + 0.0722 * b.rgb[2] }))
+            .sort((a, b) => a.v - b.v);
+          const darkest = byLuma[0]!;
+          const lightest = byLuma[byLuma.length - 1]!;
+          const pick = new Set<number>([darkest.i, lightest.i]);
+          // 均匀采样补足到 24
           const step = Math.max(1, Math.floor(total / 24));
-          const indices: number[] = [];
-          for (let i = 0; i < total && indices.length < 24; i += step) {
-            indices.push(i);
+          for (let i = 0; i < total && pick.size < 24; i += step) {
+            pick.add(i);
           }
-          commit(indices);
+          commit([...pick]);
         } else if (act === 'invert') {
           const cur = isAll ? new Set(palette.beads.map((_, k) => k)) : selected;
           const inverted = palette.beads.map((_, k) => k).filter((k) => !cur.has(k));
