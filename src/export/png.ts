@@ -3,7 +3,7 @@ import type { Palette } from '../palette/types';
 import { drawSheet, sheetPixelSize, type SheetOptions, type SheetStyle } from '../render/sheet';
 import { computeStats } from '../model/stats';
 import { drawLegendFromStats, legendAreaHeight, type LegendOptions } from './legend';
-import { drawWatermark } from './watermark';
+import { drawWatermark, ENABLE_WATERMARK } from './watermark';
 import { downloadBlob } from './csv';
 
 /** 浏览器 canvas 上限因平台而异，1600 万像素是各家都吃得下的保守值 */
@@ -32,11 +32,6 @@ const EXPORT_LEGEND: LegendOptions = {
   cols: 5,
   itemHeight: 28,
 };
-
-/** 是否给导出图加水印 */
-function shouldWatermark(): boolean {
-  return true;
-}
 
 /**
  * 用离屏 canvas 渲染图纸（含图例 + 水印）。
@@ -81,10 +76,8 @@ export function renderSheetToCanvas(
     );
   }
 
-  // 水印：画在整个画布（图纸 + 图例）的右下角
-  if (shouldWatermark()) {
-    drawWatermark(ctx, canvas.width, canvas.height, 1);
-  }
+  // 水印（中心斜体，已由 ENABLE_WATERMARK 宏控制）
+  drawWatermark(ctx, canvas.width, canvas.height, 1);
 
   return canvas;
 }

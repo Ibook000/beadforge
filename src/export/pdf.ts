@@ -8,7 +8,7 @@ import { computeStats } from '../model/stats';
 import { computeGeometry, formatGeometry } from '../model/geometry';
 import { assignSymbols } from '../palette/symbols';
 import { downloadBlob } from './csv';
-import { WATERMARK } from './watermark';
+import { WATERMARK, ENABLE_WATERMARK } from './watermark';
 
 export interface PageSpec {
   index: number;
@@ -29,14 +29,15 @@ const MARGIN = 12;
 const HEADER_H = 9;
 const FOOTER_H = 8;
 
-/** 在 PDF 页面右下角画水印文字（矢量，浅色半透明） */
+/** 在 PDF 页面中央画斜体水印文字（矢量）。受 ENABLE_WATERMARK 开关控制 */
 function drawPdfWatermark(doc: JsPDF): void {
+  if (!ENABLE_WATERMARK) return;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(52);
   // 淡粉色水印
   doc.setTextColor(232, 107, 146);
-  // 用浅色近似半透明：粉底文字降低对比
-  doc.text(WATERMARK, PAGE_W - 16, PAGE_H - 14, { align: 'right' });
+  // 斜体：用 jsPDF 的 text 旋转（PDF 无真斜体，用旋转 -20 度近似）
+  doc.text(WATERMARK, PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: -20 });
   doc.setTextColor(0, 0, 0); // 复位
 }
 
