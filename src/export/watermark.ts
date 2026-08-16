@@ -5,7 +5,7 @@ export const ENABLE_WATERMARK = true;
 
 export const WATERMARK = 'IBO0OK';
 export const WATERMARK_FONT = '900 56px ui-monospace, "SF Mono", Menlo, monospace';
-export const WATERMARK_COLOR = 'rgba(255, 90, 140, 0.8)';
+export const WATERMARK_COLOR = 'rgba(255, 90, 140, 0.2)';
 
 /**
  * 在 canvas 上铺满旋转水印，覆盖在最上层，清晰可见。
@@ -24,8 +24,8 @@ export function drawWatermark(
 
   ctx.save();
 
-  // 字号取画布短边的 12%，保证不管图纸大小水印都醒目
-  const fontSize = Math.max(24, Math.min(width, height) * 0.12 * scale);
+  // 字号取画布短边的 60%（10倍于之前），保证铺满醒目
+  const fontSize = Math.max(60, Math.min(width, height) * 0.6 * scale);
   ctx.font = `900 italic ${fontSize}px ui-monospace, "SF Mono", Menlo, monospace`;
   ctx.fillStyle = WATERMARK_COLOR;
   ctx.textAlign = 'center';

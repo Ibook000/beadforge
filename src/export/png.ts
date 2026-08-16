@@ -29,8 +29,8 @@ export function exportCellSize(
 /** 导出所需的图例选项 */
 const EXPORT_LEGEND: LegendOptions = {
   style: 'grid',
-  cols: 5,
-  itemHeight: 36,
+  cols: 4,
+  itemHeight: 48,
 };
 
 /**

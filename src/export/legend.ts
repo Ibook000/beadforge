@@ -25,11 +25,11 @@ export const DEFAULT_LEGEND_OPTIONS: LegendOptions = {
 };
 
 /** 色块边长，像素 */
-const SWATCH = 24;
+const SWATCH = 36;
 /** 色块与文字间距 */
-const GAP = 8;
+const GAP = 12;
 /** 图例标题高度 */
-const TITLE_H = 30;
+const TITLE_H = 40;
 
 /** 图例区域总高度（标题 + 行数 × 行高） */
 export function legendAreaHeight(
@@ -79,7 +79,7 @@ export function drawLegendFromStats(
 
   // 标题
   ctx.fillStyle = '#333';
-  ctx.font = '700 16px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.font = '700 20px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(`图例 · 共 ${usages.length} 色`, originX, originY + TITLE_H / 2);
@@ -116,7 +116,7 @@ export function drawLegendFromStats(
     const label = `${u.bead.code} ×${u.count}`;
 
     ctx.fillStyle = '#444';
-    ctx.font = '600 14px ui-monospace, SFMono-Regular, Menlo, monospace';
+    ctx.font = '700 18px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx.textAlign = 'left';
     ctx.fillText(label, x + SWATCH + GAP, y + SWATCH / 2);
   }
