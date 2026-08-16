@@ -4,11 +4,11 @@
 export const ENABLE_WATERMARK = true;
 
 export const WATERMARK = 'IBO0OK';
-export const WATERMARK_FONT = '900 56px ui-monospace, \"SF Mono\", Menlo, monospace';
+export const WATERMARK_FONT = '900 56px ui-monospace, "SF Mono", Menlo, monospace';
 export const WATERMARK_COLOR = 'rgba(255, 90, 140, 0.8)';
 
 /**
- * 在 canvas 中央画斜体旋转水印。
+ * 在 canvas 上铺满旋转水印，覆盖在最上层，清晰可见。
  * @param ctx      目标 canvas 上下文
  * @param width    canvas 像素宽
  * @param height   canvas 像素高
@@ -22,17 +22,26 @@ export function drawWatermark(
 ): void {
   if (!ENABLE_WATERMARK) return;
 
-  const s = 42 * scale;
   ctx.save();
 
-  // 移到画布中央，旋转 -18 度，画斜体水印
-  ctx.translate(width / 2, height / 2);
-  ctx.rotate(-18 * Math.PI / 180);
-  ctx.font = WATERMARK_FONT.replace('48px', `${s}px`);
+  // 字号取画布短边的 12%，保证不管图纸大小水印都醒目
+  const fontSize = Math.max(24, Math.min(width, height) * 0.12 * scale);
+  ctx.font = `900 italic ${fontSize}px ui-monospace, "SF Mono", Menlo, monospace`;
+  ctx.fillStyle = WATERMARK_COLOR;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = WATERMARK_COLOR;
-  ctx.fillText(WATERMARK, 0, 0);
+
+  // 旋转 -18 度，在画布上铺满重复水印
+  ctx.translate(width / 2, height / 2);
+  ctx.rotate(-18 * Math.PI / 180);
+
+  // 铺满一整行（间距 2x 字号）
+  const step = fontSize * 2.2;
+  for (let y = -height; y < height * 1.5; y += step) {
+    for (let x = -width; x < width * 1.5; x += step) {
+      ctx.fillText(WATERMARK, x, y);
+    }
+  }
 
   ctx.restore();
 }
