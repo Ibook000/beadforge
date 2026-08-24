@@ -528,6 +528,18 @@ details.group[open] > *:last-child {
   margin-bottom: 12px;
 }
 
+/* 面板里裸用的 h2（导出、我有的豆子等未进 details 的分区） */
+.panel h2 {
+  margin: 22px 0 10px;
+  padding: 0 0 7px;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  color: var(--pink-deep);
+  border-bottom: 2px dashed #f4d3e4;
+}
+
 /* ---------- 表单控件 ---------- */
 label {
   display: block;
