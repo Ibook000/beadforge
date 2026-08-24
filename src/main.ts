@@ -253,7 +253,7 @@ function setFullscreen(on: boolean): void {
   }
 }
 
-// 全屏缩放：滚轮（仅在 stage.fullscreen 时）
+// 全屏缩放：滚轮（鼠标）
 stage.addEventListener('wheel', (e) => {
   if (!store.get().fullscreen) return;
   e.preventDefault();
@@ -262,11 +262,11 @@ stage.addEventListener('wheel', (e) => {
   applyFsTransform();
 }, { passive: false });
 
-// 全屏拖拽平移（鼠标中键/在画布外区域拖动）
+// 全屏拖拽平移（鼠标，画布内外均可拖动）
 stage.addEventListener('pointerdown', (e) => {
   if (!store.get().fullscreen) return;
-  // 只在画布外的舞台空白区域开启拖拽平移
-  if (e.target === canvas) return;
+  // 触摸走独立的 touch 手势处理器，pointer 只管鼠标
+  if (e.pointerType === 'touch') return;
   fsDragging = true;
   fsDragLastX = e.clientX;
   fsDragLastY = e.clientY;
@@ -283,6 +283,78 @@ document.addEventListener('pointermove', (e) => {
 document.addEventListener('pointerup', () => {
   fsDragging = false;
 });
+
+// ---- 触摸手势：双指缩放 + 单指平移（手机/平板）----
+// 全屏模式下触摸专用于看图：单指拖动平移，双指捏合缩放
+// （单格编辑在非全屏模式做，避免冲突）
+let touchPanning = false;
+let touchLastX = 0;
+let touchLastY = 0;
+// 双指缩放状态
+let pinchActive = false;
+let pinchInitialDist = 0;
+let pinchInitialZoom = 1;
+
+function touchDist(t1: Touch, t2: Touch): number {
+  const dx = t1.clientX - t2.clientX;
+  const dy = t1.clientY - t2.clientY;
+  return Math.hypot(dx, dy);
+}
+
+stage.addEventListener('touchstart', (e) => {
+  if (!store.get().fullscreen) return;
+  e.preventDefault(); // 阻止浏览器抢手势
+  if (e.touches.length === 2) {
+    // 进入双指缩放
+    touchPanning = false;
+    pinchActive = true;
+    pinchInitialDist = touchDist(e.touches[0]!, e.touches[1]!);
+    pinchInitialZoom = fsZoom;
+  } else if (e.touches.length === 1) {
+    // 单指开始平移
+    pinchActive = false;
+    touchPanning = true;
+    touchLastX = e.touches[0]!.clientX;
+    touchLastY = e.touches[0]!.clientY;
+  }
+}, { passive: false });
+
+stage.addEventListener('touchmove', (e) => {
+  if (!store.get().fullscreen) return;
+  e.preventDefault();
+  if (pinchActive && e.touches.length === 2) {
+    // 双指缩放：按距离比值缩放
+    const dist = touchDist(e.touches[0]!, e.touches[1]!);
+    if (pinchInitialDist > 0) {
+      fsZoom = Math.max(0.25, Math.min(4, (pinchInitialZoom * dist) / pinchInitialDist));
+      applyFsTransform();
+    }
+  } else if (touchPanning && e.touches.length === 1) {
+    // 单指平移
+    const t = e.touches[0]!;
+    fsPanX += t.clientX - touchLastX;
+    fsPanY += t.clientY - touchLastY;
+    touchLastX = t.clientX;
+    touchLastY = t.clientY;
+    applyFsTransform();
+  }
+}, { passive: false });
+
+const touchEnd = (e: TouchEvent): void => {
+  if (e.touches.length === 0) {
+    touchPanning = false;
+    pinchActive = false;
+  } else if (e.touches.length === 1) {
+    // 从双指变单指：转为平移，记录当前触点
+    pinchActive = false;
+    touchPanning = true;
+    touchLastX = e.touches[0]!.clientX;
+    touchLastY = e.touches[0]!.clientY;
+  }
+};
+stage.addEventListener('touchend', touchEnd);
+stage.addEventListener('touchcancel', touchEnd);
+
 
 // 缩放按钮
 fsZoomIn.addEventListener('click', () => { fsZoom = Math.min(4, fsZoom + 0.15); applyFsTransform(); });

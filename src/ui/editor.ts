@@ -73,6 +73,8 @@ export function mountEditor(
   const paintAt = (clientX: number, clientY: number): void => {
     const s = store.get();
     if (!s.grid) return;
+    // 全屏模式是看图拼图用，触摸/点击用于缩放平移，不触发单格编辑
+    if (s.fullscreen) return;
     const cell = preview.cellAt(clientX, clientY);
     if (!cell) return;
     const i = cell.y * s.grid.width + cell.x;
@@ -97,6 +99,7 @@ export function mountEditor(
 
     // Alt + 点击 = 吸管
     if (e.altKey) {
+      if (s.fullscreen) return;
       const cell = preview.cellAt(e.clientX, e.clientY);
       if (!cell) return;
       const i = cell.y * s.grid.width + cell.x;
