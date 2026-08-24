@@ -6,14 +6,32 @@ export const ENABLE_WATERMARK = true;
 export const WATERMARK = 'IBO0OK';
 export const WATERMARK_FONT = '900 56px ui-monospace, "SF Mono", Menlo, monospace';
 /** 粉色水印 —— 透明度 20%，清晰可见但不喧宾夺主 */
-export const WATERMARK_COLOR = 'rgba(255, 105, 170, 0.2)';
+export const WATERMARK_COLOR = 'rgba(255, 105, 170, 0.22)';
 
 /** 导出左上角信息头里的网站与联系方式 */
 export const SITE_URL = 'https://ibook000.github.io/beadforge/';
 export const CONTACT = 'IBO0OK';
 
 /**
- * 在 canvas 上铺满旋转水印，覆盖在最上层，清晰可见。
+ * 等待网页字体加载完成，确保导出 canvas 用对字体而非 fallback。
+ *
+ * document.fonts.ready 在所有 @font-face（含 Google Fonts 链接）就绪时 resolve；
+ * 超时则放弃等待，用 fallback 字体也要把图导出来（不阻塞用户）。
+ */
+export async function ensureFontsReady(timeoutMs = 2500): Promise<void> {
+  try {
+    if (!('fonts' in document)) return;
+    await Promise.race([
+      (document as Document & { fonts: { ready: Promise<unknown> } }).fonts.ready,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('font timeout')), timeoutMs)),
+    ]);
+  } catch {
+    // 超时不阻塞导出
+  }
+}
+
+/**
+ * 在画布中央画一个斜置水印（不再铺满重复）。
  * @param ctx      目标 canvas 上下文
  * @param width    canvas 像素宽
  * @param height   canvas 像素高
@@ -29,25 +47,17 @@ export function drawWatermark(
 
   ctx.save();
 
-  // 字号取画布短边的 8%：醒目但不遮图纸
-  const fontSize = Math.max(28, Math.min(width, height) * 0.08 * scale);
-  ctx.font = `900 italic ${fontSize}px ui-monospace, "SF Mono", Menlo, monospace`;
+  // 单个水印，字号取画布短边的 14%
+  const fontSize = Math.max(48, Math.min(width, height) * 0.14 * scale);
+  ctx.font = `700 italic ${fontSize}px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif`;
   ctx.fillStyle = WATERMARK_COLOR;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // 旋转 -18 度，在画布上铺满重复水印
+  // 在画布中心旋转 -22 度画一个
   ctx.translate(width / 2, height / 2);
-  ctx.rotate(-18 * Math.PI / 180);
-
-  // 铺满整行（间距 2.2x 字号，行距略宽避免堆叠）
-  const step = fontSize * 2.2;
-  const rowStep = fontSize * 1.6;
-  for (let y = -height; y < height * 1.5; y += rowStep) {
-    for (let x = -width; x < width * 1.5; x += step) {
-      ctx.fillText(WATERMARK, x, y);
-    }
-  }
+  ctx.rotate(-22 * Math.PI / 180);
+  ctx.fillText(WATERMARK, 0, 0);
 
   ctx.restore();
 }

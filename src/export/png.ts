@@ -3,7 +3,7 @@ import type { Palette } from '../palette/types';
 import { drawSheet, sheetPixelSize, type SheetOptions, type SheetStyle } from '../render/sheet';
 import { computeStats, type GridStats } from '../model/stats';
 import { drawLegendFromStats, legendAreaHeight, type LegendOptions } from './legend';
-import { drawWatermark, ENABLE_WATERMARK, SITE_URL, CONTACT } from './watermark';
+import { drawWatermark, ENABLE_WATERMARK, SITE_URL, CONTACT, ensureFontsReady } from './watermark';
 import { downloadBlob } from './csv';
 
 /** 浏览器 canvas 上限因平台而异，1600 万像素是各家都吃得下的保守值 */
@@ -57,20 +57,20 @@ function drawInfoHeader(
 
   // 网站名（大号）
   ctx.fillStyle = '#ff5a8c';
-  ctx.font = '900 30px ui-monospace, "SF Mono", Menlo, monospace';
+  ctx.font = '700 30px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(SITE_URL, INFO_PAD, INFO_PAD);
 
   // 联系方式
   ctx.fillStyle = '#888';
-  ctx.font = '600 20px ui-monospace, "SF Mono", Menlo, monospace';
+  ctx.font = '500 20px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText(`@ ${CONTACT}`, INFO_PAD, INFO_PAD + 36);
 
   // 右侧统计：网格 / 色卡 / 豆子总数 / 颜色数
   ctx.textAlign = 'right';
   ctx.fillStyle = '#333';
-  ctx.font = '700 22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.font = '700 22px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   const lines = [
     `网格 ${grid.width} × ${grid.height}`,
     `色卡 ${palette.label}`,
@@ -149,6 +149,8 @@ export async function exportSheetPng(
   opts: SheetOptions,
   filename: string,
 ): Promise<void> {
+  // 等待网页字体加载完成，否则导出 canvas 会用 fallback 字体
+  await ensureFontsReady();
   const effective: SheetOptions = { ...opts, cellSize: exportCellSize(grid, opts.style) };
   const canvas = renderSheetToCanvas(grid, palette, effective, EXPORT_LEGEND);
 

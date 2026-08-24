@@ -79,7 +79,7 @@ export function drawLegendFromStats(
 
   // 标题
   ctx.fillStyle = '#333';
-  ctx.font = '700 26px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.font = '700 26px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(`图例 · 共 ${usages.length} 色`, originX, originY + TITLE_H / 2);

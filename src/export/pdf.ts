@@ -29,14 +29,14 @@ const MARGIN = 12;
 const HEADER_H = 9;
 const FOOTER_H = 8;
 
-/** 在 PDF 页面中央画斜体水印文字（矢量）。受 ENABLE_WATERMARK 开关控制 */
+/** 在 PDF 页面中央画一个斜体水印（矢量，不再铺满）。受 ENABLE_WATERMARK 开关控制 */
 function drawPdfWatermark(doc: JsPDF): void {
   if (!ENABLE_WATERMARK) return;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(28);
-  // 粉红色水印，透明度通过颜色模拟（20% 不透明感）
+  doc.setFont('helvetica', 'bolditalic');
+  doc.setFontSize(48);
+  // 粉红色水印，透明度通过颜色模拟
   doc.setTextColor(255, 150, 180);
-  doc.text(WATERMARK, PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: -20 });
+  doc.text(WATERMARK, PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: -22 });
   doc.setTextColor(0, 0, 0); // 复位
 }
 
