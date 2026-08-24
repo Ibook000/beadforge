@@ -1,6 +1,7 @@
 import type { Store } from './state';
 import { computeStats } from '../model/stats';
 import { getPalette } from '../palette/registry';
+import type { Palette } from '../palette/types';
 import { statsToCsv, downloadText } from '../export/csv';
 import { exportSheetPng } from '../export/png';
 import { exportSheetPdf } from '../export/pdf';
@@ -97,7 +98,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
           <td class="name">${u.bead.nameZh}</td>
           <td class="num">${u.count.toLocaleString('zh-CN')} 颗${missingTag}</td>
           <td class="expand-cell"><button class="expand-btn" data-expand="${u.beadIndex}" title="展开详情">${arrow}</button></td>
-        </tr>${isExpanded ? renderDetail(u, stats, sub) : ''}`;
+        </tr>${isExpanded ? renderDetail(u, stats, sub, brush, palette) : ''}`;
       })
       .join('');
 
@@ -143,31 +144,13 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
       render();
     });
 
-    // 点行：设画笔（粉色高亮）+ 高亮同色
-    //   - 已设画笔时点别的行 = 弹"替换为画笔色吗？"确认
-    //   - 点已设画笔的行 = 取消画笔
+    // 点行：设为画笔（粉色高亮）+ 高亮同色。再点已设画笔的行 = 取消
     root.querySelectorAll<HTMLElement>('tr[data-bead]').forEach((tr) => {
       tr.addEventListener('click', () => {
         const bead = Number(tr.dataset.bead);
-        const curBrush = h.getBrush();
-        if (curBrush === null) {
-          // 没设画笔 → 设为画笔
-          h.onPickBrush(bead);
-          h.onHighlight(bead);
-          render();
-        } else if (curBrush === bead) {
-          // 点已设画笔的行 → 取消画笔
-          h.onPickBrush(bead); // onPickBrush 内部会处理，这里靠 store 触发重绘
-          h.onHighlight(null);
-          render();
-        } else {
-          // 已设画笔，点别的行 → 确认替换
-          const fromBead = palette.beads[bead]!;
-          const toBead = palette.beads[curBrush]!;
-          if (confirm(`把 ${fromBead.code}（${fromBead.nameZh}）全部替换为画笔色 ${toBead.code}（${toBead.nameZh}）吗？`)) {
-            void h.onReplaceAll(bead, curBrush);
-          }
-        }
+        h.onPickBrush(bead);
+        h.onHighlight(h.getHighlight() === bead ? null : bead);
+        render();
       });
     });
 
@@ -182,6 +165,20 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
     });
 
     // 详情区里的按钮（事件冒泡到行会触发设画笔，这里 stopPropagation）
+    // 替换：把当前行色替换成画笔色（点行 A 设画笔，展开 B，点替换 → B→A）
+    root.querySelectorAll<HTMLButtonElement>('.btn-replace').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromIndex = Number(btn.dataset.replace);
+        const toIndex = h.getBrush();
+        if (toIndex === null || fromIndex === toIndex) return;
+        const fromBead = palette.beads[fromIndex]!;
+        const toBead = palette.beads[toIndex]!;
+        if (confirm(`把 ${fromBead.code}（${fromBead.nameZh}）全部替换为 ${toBead.code}（${toBead.nameZh}）吗？`)) {
+          void h.onReplaceAll(fromIndex, toIndex);
+        }
+      });
+    });
     root.querySelectorAll<HTMLButtonElement>('.btn-erase').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -240,12 +237,14 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
   render();
 }
 
-/** 渲染选中行下方的详情区：占比/累计 + 擦除 + 缺色推荐
- * 替换走"点行设画笔→点别的行确认"流程，不在此处放替换控件 */
+/** 渲染选中行下方的详情区：占比/累计 + 替换为画笔色 + 擦除 + 缺色推荐
+ * 替换方向：把当前行色替换成画笔色（点行 A 设画笔，展开 B 行，点替换 → B→A） */
 function renderDetail(
   u: { beadIndex: number; bead: { hex: string; code: string; nameZh: string }; count: number; ratio: number },
   stats: { usages: Array<{ ratio: number }> },
   sub: { candidates: Array<{ index: number; bead: { hex: string; code: string; nameZh: string }; deltaE: number }> } | undefined,
+  brush: number | null,
+  palette: Palette,
 ): string {
   // 累计占比：把排在前面的（包括自己）的 ratio 加起来
   let cumulative = 0;
@@ -277,7 +276,11 @@ function renderDetail(
         <span>${u.bead.nameZh}</span>
       </div>
       <div class="detail-actions">
-        <span class="hint-faint">替换：先点此行设为画笔，再点别的行</span>
+        ${brush !== null && brush !== u.beadIndex
+          ? `<button class="btn-replace" data-replace="${u.beadIndex}">替换为画笔色 ${palette.beads[brush]!.code}</button>`
+          : brush === u.beadIndex
+            ? '<span class="hint-faint">此色已是画笔，先点别的行设为新画笔</span>'
+            : '<span class="hint-faint">先点某行设为画笔，再回来点替换</span>'}
         <button class="btn-erase" data-erase="${u.beadIndex}">擦除此色</button>
       </div>
       ${subBlock}
