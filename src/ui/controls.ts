@@ -102,7 +102,13 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
 
     <h2>编辑工具</h2>
     <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
-
+    <label>对称绘制</label>
+    <select id="symmetry">
+      <option value="none">关闭</option>
+      <option value="horizontal">左右镜像</option>
+      <option value="vertical">上下镜像</option>
+      <option value="quad">四象限对称</option>
+    </select>
     <h2>文字工具</h2>
     <div class="text-tool">
       <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
@@ -304,6 +310,15 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
   // 外部（如 E 键）改变 eraser 时同步复选框状态
   store.subscribe((s) => {
     if (eraserCb.checked !== s.eraser) eraserCb.checked = s.eraser;
+  });
+
+  // 对称绘制模式切换
+  const symSel = $<HTMLSelectElement>('symmetry');
+  symSel.addEventListener('change', () => {
+    store.set({ symmetry: symSel.value as 'none' | 'horizontal' | 'vertical' | 'quad' });
+  });
+  store.subscribe((s) => {
+    if (symSel.value !== s.symmetry) symSel.value = s.symmetry;
   });
 
   // ---------- 文字工具 ----------
