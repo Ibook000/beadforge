@@ -1,7 +1,6 @@
 import type { Store } from './state';
 import { computeStats } from '../model/stats';
 import { getPalette } from '../palette/registry';
-import type { Palette } from '../palette/types';
 import { statsToCsv, downloadText } from '../export/csv';
 import { exportSheetPng } from '../export/png';
 import { exportSheetPdf } from '../export/pdf';
@@ -89,12 +88,16 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
         // 缺色标记：该色不在用户子集里
         const sub = subByMissing.get(u.beadIndex);
         const missingTag = sub ? '<span class="missing-tag" title="你没有这个色，点开看替代推荐">缺</span>' : '';
+        // 行末箭头：展开/收起详情（独立按钮，不触发行点击）
+        const arrow = isExpanded ? '⌄' : '›';
 
-        return `<tr data-bead="${u.beadIndex}" class="${rowCls}"${isBrush ? ' data-brush' : ''} title="点击设为画笔 + 高亮同色">
+        return `<tr data-bead="${u.beadIndex}" class="${rowCls}"${isBrush ? ' data-brush' : ''} title="${isBrush ? '再点取消画笔；点别的行=替换为画笔色' : '点此设为画笔；再点别的行替换'}">
           <td><span class="dot" style="background:${u.bead.hex}"></span></td>
           <td><code>${u.bead.code}</code></td>
+          <td class="name">${u.bead.nameZh}</td>
           <td class="num">${u.count.toLocaleString('zh-CN')} 颗${missingTag}</td>
-        </tr>${isExpanded ? renderDetail(u, stats, sub, palette) : ''}`;
+          <td class="expand-cell"><button class="expand-btn" data-expand="${u.beadIndex}" title="展开详情">${arrow}</button></td>
+        </tr>${isExpanded ? renderDetail(u, stats, sub) : ''}`;
       })
       .join('');
 
@@ -119,7 +122,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
       ${subBanner}
       <table class="stats">
         <thead><tr>
-          <th></th><th>色号</th><th class="num">颗数</th>
+          <th></th><th>色号</th><th>颜色</th><th class="num">颗数</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -140,44 +143,45 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
       render();
     });
 
-    // 点行：设画笔 + 高亮 + 展开/收起详情
+    // 点行：设画笔（粉色高亮）+ 高亮同色
+    //   - 已设画笔时点别的行 = 弹"替换为画笔色吗？"确认
+    //   - 点已设画笔的行 = 取消画笔
     root.querySelectorAll<HTMLElement>('tr[data-bead]').forEach((tr) => {
       tr.addEventListener('click', () => {
         const bead = Number(tr.dataset.bead);
-        h.onPickBrush(bead);
-        h.onHighlight(h.getHighlight() === bead ? null : bead);
-        // 切换展开：再点同一行收起
+        const curBrush = h.getBrush();
+        if (curBrush === null) {
+          // 没设画笔 → 设为画笔
+          h.onPickBrush(bead);
+          h.onHighlight(bead);
+          render();
+        } else if (curBrush === bead) {
+          // 点已设画笔的行 → 取消画笔
+          h.onPickBrush(bead); // onPickBrush 内部会处理，这里靠 store 触发重绘
+          h.onHighlight(null);
+          render();
+        } else {
+          // 已设画笔，点别的行 → 确认替换
+          const fromBead = palette.beads[bead]!;
+          const toBead = palette.beads[curBrush]!;
+          if (confirm(`把 ${fromBead.code}（${fromBead.nameZh}）全部替换为画笔色 ${toBead.code}（${toBead.nameZh}）吗？`)) {
+            void h.onReplaceAll(bead, curBrush);
+          }
+        }
+      });
+    });
+
+    // 箭头：展开/收起详情（独立按钮，不触发行点击设画笔）
+    root.querySelectorAll<HTMLButtonElement>('.expand-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const bead = Number(btn.dataset.expand);
         expanded = expanded === bead ? null : bead;
         render();
       });
     });
 
-    // 详情区里的按钮（事件冒泡到行会触发展开切换，这里 stopPropagation）
-    // 替换：先在 select 里选目标色，按钮才启用
-    root.querySelectorAll<HTMLSelectElement>('.replace-select').forEach((sel) => {
-      sel.addEventListener('change', (e) => {
-        e.stopPropagation();
-        const fromIndex = Number(sel.dataset.replaceTarget);
-        const btn = root.querySelector<HTMLButtonElement>(
-          `.btn-replace[data-replace="${fromIndex}"]`,
-        );
-        if (btn) btn.disabled = !sel.value;
-      });
-      sel.addEventListener('click', (e) => e.stopPropagation());
-    });
-    root.querySelectorAll<HTMLButtonElement>('.btn-replace').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const fromIndex = Number(btn.dataset.replace);
-        const sel = root.querySelector<HTMLSelectElement>(
-          `.replace-select[data-replace-target="${fromIndex}"]`,
-        );
-        if (!sel || !sel.value) return;
-        const toIndex = Number(sel.value);
-        if (fromIndex === toIndex) return;
-        void h.onReplaceAll(fromIndex, toIndex);
-      });
-    });
+    // 详情区里的按钮（事件冒泡到行会触发设画笔，这里 stopPropagation）
     root.querySelectorAll<HTMLButtonElement>('.btn-erase').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -236,12 +240,12 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
   render();
 }
 
-/** 渲染选中行下方的详情区：占比/累计 + 替换/擦除 + 缺色推荐 */
+/** 渲染选中行下方的详情区：占比/累计 + 擦除 + 缺色推荐
+ * 替换走"点行设画笔→点别的行确认"流程，不在此处放替换控件 */
 function renderDetail(
   u: { beadIndex: number; bead: { hex: string; code: string; nameZh: string }; count: number; ratio: number },
   stats: { usages: Array<{ ratio: number }> },
   sub: { candidates: Array<{ index: number; bead: { hex: string; code: string; nameZh: string }; deltaE: number }> } | undefined,
-  palette: Palette,
 ): string {
   // 累计占比：把排在前面的（包括自己）的 ratio 加起来
   let cumulative = 0;
@@ -249,11 +253,6 @@ function renderDetail(
     cumulative += x.ratio;
     if (x === u) break;
   }
-
-  // 替换目标色卡下拉：列出全部色，排除自己
-  const options = palette.beads
-    .map((b, i) => (i === u.beadIndex ? '' : `<option value="${i}">${b.code} · ${b.nameZh}</option>`))
-    .join('');
 
   const subBlock = sub && sub.candidates.length > 0
     ? `<div class="sub-section">
@@ -270,7 +269,7 @@ function renderDetail(
       </div>`
     : '';
 
-  return `<tr class="detail-row"><td colspan="3">
+  return `<tr class="detail-row"><td colspan="5">
     <div class="detail">
       <div class="detail-stats">
         <span>占比 <b>${(u.ratio * 100).toFixed(1)}%</b></span>
@@ -278,17 +277,12 @@ function renderDetail(
         <span>${u.bead.nameZh}</span>
       </div>
       <div class="detail-actions">
-        <label class="replace-pick">替换为
-          <select class="replace-select" data-replace-target="${u.beadIndex}">
-            <option value="">选择目标色…</option>
-            ${options}
-          </select>
-        </label>
-        <button class="btn-replace" data-replace="${u.beadIndex}" disabled>替换</button>
+        <span class="hint-faint">替换：先点此行设为画笔，再点别的行</span>
         <button class="btn-erase" data-erase="${u.beadIndex}">擦除此色</button>
       </div>
       ${subBlock}
     </div>
   </td></tr>`;
 }
+
 
