@@ -530,6 +530,57 @@ input[type='checkbox'] {
   height: 15px;
 }
 
+/* 文字输入框 */
+input[type='text'] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #f0cfe0;
+  border-radius: var(--radius-sm);
+  background: #fff8fb;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+input[type='text']:focus {
+  border-color: var(--pink);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 143, 176, 0.16);
+}
+input[type='text']::placeholder {
+  color: #d4b0c0;
+}
+
+/* 文字工具卡片 */
+.text-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(160deg, #fff5fa, #fff0f6);
+  border: 1.5px solid #f0cfe0;
+  border-radius: 12px;
+}
+.text-tool label {
+  margin: 2px 0 -2px;
+}
+.text-gen-btn {
+  width: 100%;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #ffb3c8, #ff8fb0);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px;
+  box-shadow: 0 3px 10px rgba(232, 107, 146, 0.3);
+}
+.text-gen-btn:hover {
+  background: linear-gradient(135deg, #ffa0bc, #ff7ba3);
+  box-shadow: 0 4px 14px rgba(232, 107, 146, 0.45);
+}
+
 /* ---------- 按钮 ---------- */
 .btn {
   display: inline-flex;

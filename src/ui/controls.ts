@@ -104,16 +104,18 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
     <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
 
     <h2>文字工具</h2>
-    <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
-    <label>字号 <b id="textSizeLabel">80</b> px</label>
-    <input type="range" id="textSize" min="40" max="200" step="10" value="80">
-    <label>字体</label>
-    <select id="textFont">
-      <option value='700 __SIZE__px "ZCOOL KuaiLe", "PingFang SC", sans-serif'>ZCOOL 手写体</option>
-      <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
-      <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
-    </select>
-    <div class="row"><button class="btn" id="textGen" style="width:100%">📝 生成文字图纸</button></div>
+    <div class="text-tool">
+      <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
+      <label>字号 <b id="textSizeLabel">80</b> px</label>
+      <input type="range" id="textSize" min="40" max="200" step="10" value="80">
+      <label>字体</label>
+      <select id="textFont">
+        <option value='700 __SIZE__px "ZCOOL KuaiLe", "PingFang SC", sans-serif'>ZCOOL 手写体</option>
+        <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
+        <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
+      </select>
+      <button class="btn primary text-gen-btn" id="textGen">📝 生成文字图纸</button>
+    </div>
   `;
   root.appendChild(section);
 
