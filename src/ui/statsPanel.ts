@@ -1,6 +1,7 @@
 import type { Store } from './state';
 import { computeStats } from '../model/stats';
 import { getPalette } from '../palette/registry';
+import type { Palette } from '../palette/types';
 import { statsToCsv, downloadText } from '../export/csv';
 import { exportSheetPng } from '../export/png';
 import { exportSheetPdf } from '../export/pdf';
@@ -93,7 +94,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
           <td><span class="dot" style="background:${u.bead.hex}"></span></td>
           <td><code>${u.bead.code}</code></td>
           <td class="num">${u.count.toLocaleString('zh-CN')} 颗${missingTag}</td>
-        </tr>${isExpanded ? renderDetail(u, stats, sub, brush) : ''}`;
+        </tr>${isExpanded ? renderDetail(u, stats, sub, palette) : ''}`;
       })
       .join('');
 
@@ -152,12 +153,28 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
     });
 
     // 详情区里的按钮（事件冒泡到行会触发展开切换，这里 stopPropagation）
+    // 替换：先在 select 里选目标色，按钮才启用
+    root.querySelectorAll<HTMLSelectElement>('.replace-select').forEach((sel) => {
+      sel.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const fromIndex = Number(sel.dataset.replaceTarget);
+        const btn = root.querySelector<HTMLButtonElement>(
+          `.btn-replace[data-replace="${fromIndex}"]`,
+        );
+        if (btn) btn.disabled = !sel.value;
+      });
+      sel.addEventListener('click', (e) => e.stopPropagation());
+    });
     root.querySelectorAll<HTMLButtonElement>('.btn-replace').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const fromIndex = Number(btn.dataset.replace);
-        const toIndex = h.getBrush();
-        if (toIndex === null || fromIndex === toIndex) return;
+        const sel = root.querySelector<HTMLSelectElement>(
+          `.replace-select[data-replace-target="${fromIndex}"]`,
+        );
+        if (!sel || !sel.value) return;
+        const toIndex = Number(sel.value);
+        if (fromIndex === toIndex) return;
         void h.onReplaceAll(fromIndex, toIndex);
       });
     });
@@ -224,7 +241,7 @@ function renderDetail(
   u: { beadIndex: number; bead: { hex: string; code: string; nameZh: string }; count: number; ratio: number },
   stats: { usages: Array<{ ratio: number }> },
   sub: { candidates: Array<{ index: number; bead: { hex: string; code: string; nameZh: string }; deltaE: number }> } | undefined,
-  brush: number | null,
+  palette: Palette,
 ): string {
   // 累计占比：把排在前面的（包括自己）的 ratio 加起来
   let cumulative = 0;
@@ -232,6 +249,11 @@ function renderDetail(
     cumulative += x.ratio;
     if (x === u) break;
   }
+
+  // 替换目标色卡下拉：列出全部色，排除自己
+  const options = palette.beads
+    .map((b, i) => (i === u.beadIndex ? '' : `<option value="${i}">${b.code} · ${b.nameZh}</option>`))
+    .join('');
 
   const subBlock = sub && sub.candidates.length > 0
     ? `<div class="sub-section">
@@ -256,12 +278,17 @@ function renderDetail(
         <span>${u.bead.nameZh}</span>
       </div>
       <div class="detail-actions">
-        ${brush !== null && brush !== u.beadIndex
-          ? `<button class="btn-replace" data-replace="${u.beadIndex}">替换为画笔色</button>`
-          : '<span class="hint-faint">先在别处取色设为画笔，才能替换</span>'}
+        <label class="replace-pick">替换为
+          <select class="replace-select" data-replace-target="${u.beadIndex}">
+            <option value="">选择目标色…</option>
+            ${options}
+          </select>
+        </label>
+        <button class="btn-replace" data-replace="${u.beadIndex}" disabled>替换</button>
         <button class="btn-erase" data-erase="${u.beadIndex}">擦除此色</button>
       </div>
       ${subBlock}
     </div>
   </td></tr>`;
 }
+
