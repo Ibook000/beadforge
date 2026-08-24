@@ -78,14 +78,17 @@ export function drawLegendFromStats(
   ctx.save();
 
   // 标题
-  ctx.fillStyle = '#333';
-  ctx.font = '700 26px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = '#ff5a8c';
+  ctx.font = '400 30px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(`图例 · 共 ${usages.length} 色`, originX, originY + TITLE_H / 2);
-  // 标题分隔线
-  ctx.strokeStyle = '#e0e0e0';
-  ctx.lineWidth = 1;
+  // 标题分隔线（粉色渐变）
+  const sep = ctx.createLinearGradient(originX, 0, originX + areaW, 0);
+  sep.addColorStop(0, '#ff8fb0');
+  sep.addColorStop(1, 'rgba(255,143,176,0.1)');
+  ctx.strokeStyle = sep;
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(originX, originY + TITLE_H - 2);
   ctx.lineTo(originX + areaW, originY + TITLE_H - 2);
@@ -104,22 +107,47 @@ export function drawLegendFromStats(
     const x = originX + col * colW;
     const y = originY + TITLE_H + row * legend.itemHeight;
 
-    // 色块
+    // 色块（圆角，更柔和）
     ctx.fillStyle = u.bead.hex;
-    ctx.fillRect(x, y, SWATCH, SWATCH);
+    roundedSwatch(ctx, x, y, SWATCH, SWATCH, 8);
+    ctx.fill();
     // 细边框，深底更清晰
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y + 0.5, SWATCH - 1, SWATCH - 1);
+    roundedSwatch(ctx, x + 0.5, y + 0.5, SWATCH - 1, SWATCH - 1, 7.5);
+    ctx.stroke();
 
-    // 文字（色号 + 数量）
-    const label = `${u.bead.code} ×${u.count}`;
-
-    ctx.fillStyle = '#444';
-    ctx.font = '700 22px ui-monospace, SFMono-Regular, Menlo, monospace';
+    // 色号（粗体等宽）
+    ctx.fillStyle = '#3c4043';
+    ctx.font = '700 22px "SFMono-Regular", ui-monospace, Menlo, "Cascadia Code", monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(label, x + SWATCH + GAP, y + SWATCH / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(u.bead.code, x + SWATCH + GAP, y + SWATCH / 2 - 10);
+
+    // 数量（小字灰，放色号下方）
+    ctx.fillStyle = '#9aa0a6';
+    ctx.font = '500 16px "Noto Sans SC", "PingFang SC", sans-serif';
+    ctx.fillText(`× ${u.count} 颗`, x + SWATCH + GAP, y + SWATCH / 2 + 12);
   }
 
   ctx.restore();
+}
+
+/** 圆角色块路径 */
+function roundedSwatch(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
 }

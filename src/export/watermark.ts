@@ -5,8 +5,8 @@ export const ENABLE_WATERMARK = true;
 
 export const WATERMARK = 'IBO0OK';
 export const WATERMARK_FONT = '900 56px ui-monospace, "SF Mono", Menlo, monospace';
-/** 粉色水印 —— 透明度 20%，清晰可见但不喧宾夺主 */
-export const WATERMARK_COLOR = 'rgba(255, 105, 170, 0.22)';
+/** 黑色水印 —— 透明度 18%，清晰可见但不喧宾夺主 */
+export const WATERMARK_COLOR = 'rgba(0, 0, 0, 0.18)';
 
 /** 导出左上角信息头里的网站与联系方式 */
 export const SITE_URL = 'https://ibook000.github.io/beadforge/';

@@ -34,13 +34,14 @@ const EXPORT_LEGEND: LegendOptions = {
 };
 
 /** 信息头高度（画布顶部预留区域，放网站/联系方式/网格/色卡/豆数/色数） */
-const INFO_HEADER_H = 92;
-const INFO_PAD = 16;
+const INFO_HEADER_H = 120;
+const INFO_PAD = 20;
 
 /**
- * 在画布左上角画信息头：网站、联系方式，以及网格尺寸 / 色卡名 / 豆子总数 / 颜色数。
+ * 在画布顶部画信息头：网站、联系方式，以及网格尺寸 / 色卡名 / 豆子总数 / 颜色数。
  *
- * 信息头是导出图的「名片」，方便别人拿到图纸后回网站找同款或联系作者。
+ * 排版：左侧品牌区（ZCOOL 手写体网站名 + 联系方式），右侧四宫格统计卡
+ * （每格一个粉色圆点 + 标签 + 数值）。信息头是导出图的「名片」。
  */
 function drawInfoHeader(
   ctx: CanvasRenderingContext2D,
@@ -51,38 +52,101 @@ function drawInfoHeader(
 ): void {
   ctx.save();
 
-  // 顶部粉色彩条（品牌色）
-  ctx.fillStyle = '#ff8fb0';
-  ctx.fillRect(0, 0, width, 6);
+  // 顶部品牌彩条（渐变粉）
+  const bar = ctx.createLinearGradient(0, 0, width, 0);
+  bar.addColorStop(0, '#ff6fa5');
+  bar.addColorStop(1, '#ffb3c8');
+  ctx.fillStyle = bar;
+  ctx.fillRect(0, 0, width, 8);
 
-  // 网站名（大号）
+  // ---- 左侧：网站名（ZCOOL 手写体）+ 联系方式 ----
+  const leftX = INFO_PAD;
+  const topY = INFO_PAD + 4;
+
   ctx.fillStyle = '#ff5a8c';
-  ctx.font = '700 30px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.font = '400 38px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText(SITE_URL, INFO_PAD, INFO_PAD);
+  ctx.fillText('Picabead 拼豆图纸', leftX, topY);
 
-  // 联系方式
-  ctx.fillStyle = '#888';
-  ctx.font = '500 20px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText(`@ ${CONTACT}`, INFO_PAD, INFO_PAD + 36);
+  ctx.fillStyle = '#9aa0a6';
+  ctx.font = '500 18px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillText(SITE_URL, leftX, topY + 46);
 
-  // 右侧统计：网格 / 色卡 / 豆子总数 / 颜色数
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#333';
-  ctx.font = '700 22px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
-  const lines = [
-    `网格 ${grid.width} × ${grid.height}`,
-    `色卡 ${palette.label}`,
-    `豆子 ${stats.totalBeads} 颗`,
-    `颜色 ${stats.colorCount} 种`,
+  ctx.fillStyle = '#bbb';
+  ctx.font = '500 16px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillText(`作者 @ ${CONTACT}`, leftX, topY + 72);
+
+  // ---- 右侧：四宫格统计卡 ----
+  const cards = [
+    { label: '网格', value: `${grid.width} × ${grid.height}`, color: '#ff6fa5' },
+    { label: '色卡', value: palette.label, color: '#7eb6ff' },
+    { label: '豆子', value: `${stats.totalBeads} 颗`, color: '#8ecbff' },
+    { label: '颜色', value: `${stats.colorCount} 种`, color: '#b58cf6' },
   ];
-  lines.forEach((line, i) => {
-    ctx.fillText(line, width - INFO_PAD, INFO_PAD + i * 22);
+
+  const cardW = 168;
+  const cardH = 44;
+  const cardGap = 12;
+  const cardsBlockW = cardW * 2 + cardGap;
+  const cardsBlockH = cardH * 2 + cardGap;
+  const cardsX = width - INFO_PAD - cardsBlockW;
+  const cardsY = topY + 8;
+
+  ctx.font = '700 22px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.textBaseline = 'middle';
+
+  cards.forEach((c, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const x = cardsX + col * (cardW + cardGap);
+    const y = cardsY + row * (cardH + cardGap);
+
+    // 卡片底色（淡粉圆角）
+    roundedRect(ctx, x, y, cardW, cardH, 10);
+    ctx.fillStyle = '#fdf2f6';
+    ctx.fill();
+
+    // 左侧圆点
+    ctx.fillStyle = c.color;
+    ctx.beginPath();
+    ctx.arc(x + 18, y + cardH / 2, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 标签（小字灰）
+    ctx.fillStyle = '#9aa0a6';
+    ctx.font = '500 15px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(c.label, x + 34, y + cardH / 2 - 9);
+
+    // 数值（大字深色）
+    ctx.fillStyle = '#3c4043';
+    ctx.font = '700 19px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText(c.value, x + 34, y + cardH / 2 + 11);
   });
 
   ctx.restore();
 }
+
+/** 画圆角矩形路径（不填充，由调用方 fill/stroke） */
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+): void {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+}
+
 
 /**
  * 用离屏 canvas 渲染图纸（含图例 + 水印）。
