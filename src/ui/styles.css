@@ -731,9 +731,121 @@ table.stats tbody tr:hover {
 
 table.stats th:last-child,
 table.stats td:last-child {
-  text-align: center;
-  width: 46px;
+  text-align: right;
   white-space: nowrap;
+}
+
+/* 展开行：去掉 hover 底色，承接详情区 */
+table.stats tbody tr.expanded {
+  background: #fff5fa;
+}
+/* 详情行不受 hover/高亮影响，铺满整行 */
+table.stats tbody tr.detail-row {
+  cursor: default;
+  background: #fff8fc;
+}
+table.stats tbody tr.detail-row:hover {
+  background: #fff8fc;
+}
+table.stats tbody tr.detail-row > td {
+  padding: 10px 8px 12px;
+  border-bottom: 1.5px solid #f3c6dc;
+}
+
+/* 详情区 */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.detail-stats b {
+  color: var(--pink-deep);
+  font-variant-numeric: tabular-nums;
+}
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.hint-faint {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+/* 缺色标记 */
+.missing-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #e86b92;
+  border-radius: 4px;
+  vertical-align: 1px;
+}
+
+/* 缺色汇总提示条 */
+.sub-banner {
+  margin: 6px 0 2px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  color: #b5557a;
+  background: #fff0f6;
+  border: 1px solid #f3c6dc;
+  border-radius: 8px;
+}
+
+/* 缺色推荐区 */
+.sub-section {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed #f3c6dc;
+}
+.sub-title {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.sub-cand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.sub-cand .sub-name {
+  color: var(--ink-soft);
+  flex: 1;
+}
+.sub-cand .sub-delta {
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.btn-sub-apply {
+  background: rgba(255, 143, 176, 0.15);
+  color: #e86b92;
+  border: 1px solid #f3a8c6;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-sub-apply:hover {
+  background: rgba(255, 143, 176, 0.3);
 }
 
 .dot {
