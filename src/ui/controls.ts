@@ -2,7 +2,8 @@ import type { Store } from './state';
 import { listPalettes } from '../palette/registry';
 import type { PaletteId } from '../palette/types';
 import { computeGeometry, formatGeometry } from '../model/geometry';
-import { loadImageFile } from './imageLoad';
+import { loadImageFile, textToImageDataUrl, imageDataUrlToGrid } from './imageLoad';
+import { ensureFontsReady } from '../export/watermark';
 import type { BuildParams } from '../pipeline/build';
 import type { SampleMode } from '../pipeline/sample';
 import type { DitherMode } from '../color/dither';
@@ -101,6 +102,18 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
 
     <h2>编辑工具</h2>
     <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
+
+    <h2>文字工具</h2>
+    <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
+    <label>字号 <b id="textSizeLabel">80</b> px</label>
+    <input type="range" id="textSize" min="40" max="200" step="10" value="80">
+    <label>字体</label>
+    <select id="textFont">
+      <option value='700 __SIZE__px "ZCOOL KuaiLe", "PingFang SC", sans-serif'>ZCOOL 手写体</option>
+      <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
+      <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
+    </select>
+    <div class="row"><button class="btn" id="textGen" style="width:100%">📝 生成文字图纸</button></div>
   `;
   root.appendChild(section);
 
@@ -289,6 +302,40 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
   // 外部（如 E 键）改变 eraser 时同步复选框状态
   store.subscribe((s) => {
     if (eraserCb.checked !== s.eraser) eraserCb.checked = s.eraser;
+  });
+
+  // ---------- 文字工具 ----------
+  const textInput = $<HTMLInputElement>('textInput');
+  const textSize = $<HTMLInputElement>('textSize');
+  const textFont = $<HTMLSelectElement>('textFont');
+  const textGenBtn = $<HTMLButtonElement>('textGen');
+
+  textSize.addEventListener('input', () => {
+    $('textSizeLabel').textContent = textSize.value;
+  });
+
+  textGenBtn.addEventListener('click', async () => {
+    const text = textInput.value.trim();
+    if (!text) {
+      alert('请先输入文字');
+      return;
+    }
+    await ensureFontsReady();
+    const size = Number(textSize.value);
+    // 字体模板里的占位字号替换成实际值
+    const font = textFont.value.replace(/__SIZE__/g, String(size));
+    const dataUrl = textToImageDataUrl(text, size, font);
+    try {
+      const grid = await imageDataUrlToGrid(dataUrl);
+      $('fileName').textContent = `文字：${text} · ${grid.width}×${grid.height}`;
+      store.set({ image: grid, imageName: `文字-${text}`, imageDataUrl: dataUrl });
+      // 按文字图比例重算高度
+      const w = store.get().build.widthCells;
+      const square = $<HTMLInputElement>('square').checked;
+      h.onGranularity(w, square ? w : Math.max(1, Math.round((w * grid.height) / grid.width)));
+    } catch (err) {
+      alert(`文字生成失败：${err instanceof Error ? err.message : String(err)}`);
+    }
   });
 
   // ---------- 几何回显 ----------

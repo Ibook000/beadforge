@@ -56,3 +56,43 @@ function toDataUrl(bitmap: ImageBitmap, maxEdge: number): string {
   ctx.drawImage(bitmap, 0, 0, w, h);
   return canvas.toDataURL('image/jpeg', 0.85);
 }
+
+/**
+ * 把文字渲染成图片，走和上传图片同一条管线。
+ *
+ * 用离屏 canvas 画文字 → 取 ImageData → 转成 dataURL。
+ * 文字本身是矢量，画到 canvas 后取像素，再当普通图喂给管线采样。
+ * 白底黑字，拼出来就是深色字配浅背景。
+ *
+ * @param text   要渲染的文字
+ * @param fontPx 字号（像素）。越大越清晰，但太大会超出 PROCESS_MAX_EDGE 被缩
+ * @param font  CSS font 字符串，如 '700 80px "ZCOOL KuaiLe"'
+ */
+export function textToImageDataUrl(text: string, fontPx: number, font: string): string {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d')!;
+  // 先量字宽：设个初始宽，measureText 给出实际宽
+  ctx.font = font;
+  const metrics = ctx.measureText(text);
+  const wPx = Math.max(1, Math.ceil(metrics.width)) + fontPx * 0.4;
+  const hPx = Math.ceil(fontPx * 1.4);
+
+  canvas.width = Math.min(PROCESS_MAX_EDGE, wPx);
+  canvas.height = Math.min(PROCESS_MAX_EDGE, hPx);
+  const ctx2 = canvas.getContext('2d')!;
+  // 重新设字体（canvas 尺寸变了会重置）
+  ctx2.font = font;
+  ctx2.fillStyle = '#ffffff';
+  ctx2.fillRect(0, 0, canvas.width, canvas.height);
+  ctx2.fillStyle = '#000000';
+  ctx2.textBaseline = 'middle';
+  ctx2.textAlign = 'left';
+  ctx2.fillText(text, fontPx * 0.2, canvas.height / 2);
+
+  return canvas.toDataURL('image/png');
+}
+
+/** 从 dataURL 恢复 RgbaGrid（文字图也走这条） */
+export async function imageDataUrlToGrid(dataUrl: string): Promise<RgbaGrid> {
+  return loadImageDataUrl(dataUrl);
+}
