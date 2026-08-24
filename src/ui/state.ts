@@ -26,8 +26,6 @@ export interface AppState {
   fullscreen: boolean;
   /** 橡皮擦模式（手机/平板无键盘，靠 UI 切换） */
   eraser: boolean;
-  /** 对称绘制模式：画一边自动镜像到对称位置 */
-  symmetry: 'none' | 'horizontal' | 'vertical' | 'quad';
 }
 
 export interface Store {
@@ -49,7 +47,6 @@ function initialState(): AppState {
     highlightBead: null,
     fullscreen: false,
     eraser: false,
-    symmetry: 'none',
   };
 }
 

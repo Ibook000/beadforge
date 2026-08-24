@@ -79,48 +79,16 @@ export function mountEditor(
     if (!cell) return;
     const i = cell.y * s.grid.width + cell.x;
 
-    // 画主格，收集要同步镜像的位置
-    const mirrors: number[] = [];
-    const sym = s.symmetry;
-    if (sym !== 'none') {
-      const w = s.grid.width;
-      const h = s.grid.height;
-      const mx = w - 1 - cell.x; // 水平镜像 x
-      const my = h - 1 - cell.y; // 垂直镜像 y
-      if (sym === 'horizontal' || sym === 'quad') {
-        mirrors.push(cell.y * w + mx);
-      }
-      if (sym === 'vertical' || sym === 'quad') {
-        mirrors.push(my * w + cell.x);
-      }
-      if (sym === 'quad') {
-        mirrors.push(my * w + mx);
-      }
-    }
-
     if (eraser) {
       // 橡皮擦：只在有豆的格子上生效
       if (s.grid.mask[i] !== 1) return;
       history.apply(i, ERASE);
-      for (const mi of mirrors) {
-        if (mi !== i && mi >= 0 && mi < s.grid.mask.length && s.grid.mask[mi] === 1) {
-          history.apply(mi, ERASE);
-        }
-      }
     } else {
       const b = currentBrush();
       if (b === null) return;
       if (s.grid.mask[i] !== 1) return; // 空格不涂
-      // 批量：主格 + 镜像格一起记一个历史条目
-      const entries: Array<[number, number]> = [];
-      if (s.grid.cells[i] !== b) entries.push([i, b]);
-      for (const mi of mirrors) {
-        if (mi !== i && mi >= 0 && mi < s.grid.mask.length && s.grid.mask[mi] === 1 && s.grid.cells[mi] !== b) {
-          entries.push([mi, b]);
-        }
-      }
-      if (entries.length === 0) return;
-      history.batchApply(entries);
+      if (s.grid.cells[i] === b) return;
+      history.apply(i, b);
     }
     onPatch();
   };

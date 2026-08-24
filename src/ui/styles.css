@@ -468,15 +468,64 @@ body::after {
   color: var(--pink-deep);
 }
 
-.panel h2 {
-  margin: 24px 0 10px;
-  padding: 0 0 7px;
+/* 折叠分组：用 details/summary 节省纵向空间，常用区默认展开 */
+details.group {
+  margin-top: 12px;
+  border: 1.5px solid #f4d9e6;
+  border-radius: 13px;
+  background: #fff8fc;
+  overflow: hidden;
+}
+details.group:first-of-type {
+  margin-top: 16px;
+}
+details.group + details.group {
+  margin-top: 10px;
+}
+details.group > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 10px 14px;
   font-family: var(--font-hand);
   font-size: 15px;
-  font-weight: 400;
   letter-spacing: 2px;
   color: var(--pink-deep);
-  border-bottom: 2px dashed #f4d3e4;
+  background: linear-gradient(135deg, #fff0f6, #ffe9f3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.15s;
+}
+details.group > summary::-webkit-details-marker {
+  display: none;
+}
+details.group > summary::after {
+  content: '▾';
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--pink);
+  transition: transform 0.2s;
+}
+details.group:not([open]) > summary::after {
+  transform: rotate(-90deg);
+}
+details.group > summary:hover {
+  background: linear-gradient(135deg, #ffe6f1, #ffdfee);
+}
+details.group[open] > summary {
+  border-bottom: 1.5px dashed #f3cfe0;
+}
+/* 内容区内边距，给原 label/控件留呼吸空间 */
+details.group > *:not(summary) {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+details.group[open] > *:nth-child(2) {
+  margin-top: 8px;
+}
+details.group[open] > *:last-child {
+  margin-bottom: 12px;
 }
 
 /* ---------- 表单控件 ---------- */

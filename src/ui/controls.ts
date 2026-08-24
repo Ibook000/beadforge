@@ -33,95 +33,103 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
     <button class="btn primary" id="upload" style="width:100%;padding:11px;font-size:15px">🌸 选择一张图片</button>
     <div class="readout" id="fileName">还没有选择图片呀(｡•ㅅ•｡)</div>
 
-    <h2>颗粒度</h2>
-    <label>宽度 <b id="wLabel">29</b> 格</label>
-    <input type="range" id="width" min="10" max="200" value="29">
-    <label class="inline"><input type="checkbox" id="square"> 锁定正方形</label>
-    <div class="presets" id="presets"></div>
-    <div class="readout" id="geo">—</div>
+    <details open class="group">
+      <summary>颗粒度</summary>
+      <label>宽度 <b id="wLabel">29</b> 格</label>
+      <input type="range" id="width" min="10" max="200" value="29">
+      <label class="inline"><input type="checkbox" id="square"> 锁定正方形</label>
+      <div class="presets" id="presets"></div>
+      <div class="readout" id="geo">—</div>
+    </details>
 
-    <h2>豆子与色卡</h2>
-    <label>豆子尺寸</label>
-    <select id="beadSize">
-      <option value="5">5mm 大豆</option>
-      <option value="2.6">2.6mm 小豆</option>
-    </select>
-    <label>品牌色卡</label>
-    <select id="palette"></select>
-
-    <h2>图像调整</h2>
-    <label>亮度 <b id="brightnessLabel">1.00</b></label>
-    <input type="range" id="brightness" min="0.4" max="1.8" step="0.02" value="1">
-    <label>对比度 <b id="contrastLabel">1.00</b></label>
-    <input type="range" id="contrast" min="0.4" max="2" step="0.02" value="1">
-    <label>饱和度 <b id="saturationLabel">1.00</b></label>
-    <input type="range" id="saturation" min="0" max="2" step="0.02" value="1">
-    <label>去背景容差 <b id="bgLabel">0</b></label>
-    <input type="range" id="bgTolerance" min="0" max="60" step="1" value="0">
-
-    <h2>算法</h2>
-    <label>采样方式</label>
-    <select id="sampleMode">
-      <option value="average">区域平均（推荐）</option>
-      <option value="median">中位数（抗噪点）</option>
-      <option value="nearest">最近邻（像素画）</option>
-    </select>
-    <label>色数上限</label>
-    <select id="maxColors">
-      <option value="0">不限制</option>
-      <option value="24">24 色</option>
-      <option value="20">20 色</option>
-      <option value="15">15 色（新手友好）</option>
-      <option value="12">12 色</option>
-      <option value="8">8 色</option>
-    </select>
-    <label>抖动</label>
-    <select id="dither">
-      <option value="none">关闭（推荐）</option>
-      <option value="atkinson">Atkinson</option>
-      <option value="floyd-steinberg">Floyd–Steinberg</option>
-    </select>
-    <label>去孤点</label>
-    <select id="despeckle">
-      <option value="off">关闭</option>
-      <option value="weak" selected>弱（清孤立单颗）</option>
-      <option value="strong">强（连对子一起清）</option>
-    </select>
-
-    <h2>图纸样式</h2>
-    <select id="style">
-      <option value="code">色块 + 色号</option>
-      <option value="symbol">色块 + 符号</option>
-      <option value="plain">纯色块</option>
-      <option value="round">圆豆拟真</option>
-    </select>
-    <label class="inline"><input type="checkbox" id="showGrid" checked> 网格线</label>
-    <label class="inline"><input type="checkbox" id="showCoords" checked> 行列坐标</label>
-    <label class="inline"><input type="checkbox" id="showMajorLines" checked> 每 10 格加粗</label>
-    <label class="inline"><input type="checkbox" id="showBoardLines"> 底板分界虚线</label>
-
-    <h2>编辑工具</h2>
-    <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
-    <label>对称绘制</label>
-    <select id="symmetry">
-      <option value="none">关闭</option>
-      <option value="horizontal">左右镜像</option>
-      <option value="vertical">上下镜像</option>
-      <option value="quad">四象限对称</option>
-    </select>
-    <h2>文字工具</h2>
-    <div class="text-tool">
-      <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
-      <label>字号 <b id="textSizeLabel">80</b> px</label>
-      <input type="range" id="textSize" min="40" max="200" step="10" value="80">
-      <label>字体</label>
-      <select id="textFont">
-        <option value='700 __SIZE__px "ZCOOL KuaiLe", "PingFang SC", sans-serif'>ZCOOL 手写体</option>
-        <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
-        <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
+    <details open class="group">
+      <summary>豆子与色卡</summary>
+      <label>豆子尺寸</label>
+      <select id="beadSize">
+        <option value="5">5mm 大豆</option>
+        <option value="2.6">2.6mm 小豆</option>
       </select>
-      <button class="btn primary text-gen-btn" id="textGen">📝 生成文字图纸</button>
-    </div>
+      <label>品牌色卡</label>
+      <select id="palette"></select>
+    </details>
+
+    <details class="group">
+      <summary>图像调整</summary>
+      <label>亮度 <b id="brightnessLabel">1.00</b></label>
+      <input type="range" id="brightness" min="0.4" max="1.8" step="0.02" value="1">
+      <label>对比度 <b id="contrastLabel">1.00</b></label>
+      <input type="range" id="contrast" min="0.4" max="2" step="0.02" value="1">
+      <label>饱和度 <b id="saturationLabel">1.00</b></label>
+      <input type="range" id="saturation" min="0" max="2" step="0.02" value="1">
+      <label>去背景容差 <b id="bgLabel">0</b></label>
+      <input type="range" id="bgTolerance" min="0" max="60" step="1" value="0">
+    </details>
+
+    <details class="group">
+      <summary>算法</summary>
+      <label>采样方式</label>
+      <select id="sampleMode">
+        <option value="average">区域平均（推荐）</option>
+        <option value="median">中位数（抗噪点）</option>
+        <option value="nearest">最近邻（像素画）</option>
+      </select>
+      <label>色数上限</label>
+      <select id="maxColors">
+        <option value="0">不限制</option>
+        <option value="24">24 色</option>
+        <option value="20">20 色</option>
+        <option value="15">15 色（新手友好）</option>
+        <option value="12">12 色</option>
+        <option value="8">8 色</option>
+      </select>
+      <label>抖动</label>
+      <select id="dither">
+        <option value="none">关闭（推荐）</option>
+        <option value="atkinson">Atkinson</option>
+        <option value="floyd-steinberg">Floyd–Steinberg</option>
+      </select>
+      <label>去孤点</label>
+      <select id="despeckle">
+        <option value="off">关闭</option>
+        <option value="weak" selected>弱（清孤立单颗）</option>
+        <option value="strong">强（连对子一起清）</option>
+      </select>
+    </details>
+
+    <details class="group">
+      <summary>图纸样式</summary>
+      <select id="style">
+        <option value="code">色块 + 色号</option>
+        <option value="symbol">色块 + 符号</option>
+        <option value="plain">纯色块</option>
+        <option value="round">圆豆拟真</option>
+      </select>
+      <label class="inline"><input type="checkbox" id="showGrid" checked> 网格线</label>
+      <label class="inline"><input type="checkbox" id="showCoords" checked> 行列坐标</label>
+      <label class="inline"><input type="checkbox" id="showMajorLines" checked> 每 10 格加粗</label>
+      <label class="inline"><input type="checkbox" id="showBoardLines"> 底板分界虚线</label>
+    </details>
+
+    <details class="group">
+      <summary>编辑工具</summary>
+      <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
+    </details>
+
+    <details class="group">
+      <summary>文字工具</summary>
+      <div class="text-tool">
+        <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
+        <label>字号 <b id="textSizeLabel">80</b> px</label>
+        <input type="range" id="textSize" min="40" max="200" step="10" value="80">
+        <label>字体</label>
+        <select id="textFont">
+          <option value='700 __SIZE__px "ZCOOL KuaiLe", "PingFang SC", sans-serif'>ZCOOL 手写体</option>
+          <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
+          <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
+        </select>
+        <button class="btn primary text-gen-btn" id="textGen">📝 生成文字图纸</button>
+      </div>
+    </details>
   `;
   root.appendChild(section);
 
@@ -310,15 +318,6 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
   // 外部（如 E 键）改变 eraser 时同步复选框状态
   store.subscribe((s) => {
     if (eraserCb.checked !== s.eraser) eraserCb.checked = s.eraser;
-  });
-
-  // 对称绘制模式切换
-  const symSel = $<HTMLSelectElement>('symmetry');
-  symSel.addEventListener('change', () => {
-    store.set({ symmetry: symSel.value as 'none' | 'horizontal' | 'vertical' | 'quad' });
-  });
-  store.subscribe((s) => {
-    if (symSel.value !== s.symmetry) symSel.value = s.symmetry;
   });
 
   // ---------- 文字工具 ----------
