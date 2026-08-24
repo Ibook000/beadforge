@@ -390,3 +390,156 @@ export async function exportSheetPdf(
 
   downloadBlob(filename, doc.output('blob'));
 }
+
+/** 标准方形底板的钉数：5mm 大豆 29×29，2.6mm 小豆 57×57（与 geometry.ts 一致） */
+const BOARD_PEGS: Record<5 | 2.6, number> = { 5: 29, 2.6: 57 };
+
+/**
+ * 按物理底板边界切分导出 PDF：每页正好一块板的区域。
+ *
+ * 与 {@link exportSheetPdf} 的区别：那个按 A4 能塞多少格来切页（50×32），
+ * 与物理板无关；这个按 boardPegs 切（5mm=29，2.6mm=57），一页一板，
+ * 拼装时不用跨板看图纸。overlap=0 —— 板边界是物理分界，格子归属明确，
+ * 不需要重叠。超出整板的最后一页会是残板（小于一整板），坐标仍连续。
+ */
+export async function exportSheetPdfByBoard(
+  grid: BeadGrid,
+  palette: Palette,
+  opts: SheetOptions,
+  filename: string,
+): Promise<void> {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+  const pegs = BOARD_PEGS[opts.beadSizeMm];
+  const pages = planPages(grid, pegs, pegs, 0); // 板边界切分，无重叠
+  const cols = Math.max(...pages.map((p) => p.col)) + 1;
+  const rows = Math.max(...pages.map((p) => p.row)) + 1;
+  const totalPages = pages.length + 1;
+
+  for (const p of pages) {
+    if (p.index > 0) doc.addPage();
+    const slice = sliceGrid(grid, p);
+
+    // 页眉：板坐标 + 覆盖格子范围
+    textStrip(
+      doc,
+      `第 ${p.index + 1} / ${totalPages} 页　·　第 ${p.row + 1} 行 第 ${p.col + 1} 列 板　·　` +
+        `覆盖格子 X ${p.x0 + 1}–${p.x1}　Y ${p.y0 + 1}–${p.y1}`,
+      MARGIN,
+      MARGIN - 6,
+      4.4,
+      '#333333',
+    );
+
+    // 拼接指引（与普通分页一致，提示相邻板页）
+    const hints: string[] = [];
+    if (p.col > 0) hints.push(`◀ 左接第 ${p.index} 页`);
+    if (p.col < cols - 1) hints.push(`右接第 ${p.index + 2} 页 ▶`);
+    if (p.row > 0) hints.push(`▲ 上接第 ${p.index - cols + 1} 页`);
+    if (p.row < rows - 1) hints.push(`下接第 ${p.index + cols + 1} 页 ▼`);
+    if (hints.length > 0) {
+      textStrip(doc, hints.join('　　'), MARGIN, PAGE_H - FOOTER_H, 4.4, '#8a4a54');
+    }
+
+    // 图纸主体：复用矢量绘制，labelOffset 保证跨页坐标连续
+    const availW = PAGE_W - MARGIN * 2 - 8;
+    const availH = PAGE_H - MARGIN - HEADER_H - FOOTER_H - 6;
+    const cellMm = Math.min(availW / slice.width, availH / slice.height);
+    const gridW = slice.width * cellMm;
+    const gridH = slice.height * cellMm;
+
+    drawGridVector(
+      doc,
+      slice,
+      palette,
+      opts,
+      MARGIN + 4 + (availW - gridW) / 2,
+      MARGIN + HEADER_H + (availH - gridH) / 2,
+      cellMm,
+      p.x0,
+      p.y0,
+    );
+
+    drawPdfWatermark(doc);
+  }
+
+  // ---- 末页：总览 + 用量表（与普通分页一致） ----
+  doc.addPage();
+  const stats = computeStats(grid, palette);
+  const g = computeGeometry(grid.width, grid.height, opts.beadSizeMm);
+
+  textStrip(doc, '总览与用量', MARGIN, MARGIN - 4, 6.5, '#111111');
+  textStrip(doc, formatGeometry(g, stats.totalBeads), MARGIN, MARGIN + 6, 4.2, '#555555');
+  textStrip(
+    doc,
+    `共 ${stats.colorCount} 种颜色　·　${palette.label}　·　按 ${pegs}×${pegs} 板分页`,
+    MARGIN,
+    MARGIN + 12,
+    4.2,
+    '#555555',
+  );
+
+  // 缩略总览图
+  const thumbBox = 420;
+  const thumbCell = Math.max(1, Math.floor(thumbBox / Math.max(grid.width, grid.height)));
+  const thumbCanvas = document.createElement('canvas');
+  thumbCanvas.width = grid.width * thumbCell;
+  thumbCanvas.height = grid.height * thumbCell;
+  const tctx = thumbCanvas.getContext('2d')!;
+  tctx.fillStyle = '#ffffff';
+  tctx.fillRect(0, 0, thumbCanvas.width, thumbCanvas.height);
+  drawSheet(tctx, grid, palette, {
+    ...opts,
+    style: 'plain',
+    cellSize: thumbCell,
+    showCoords: false,
+    showGrid: false,
+    showMajorLines: false,
+    showBoardLines: true, // 总览图上画板线，让用户看到切分边界
+  });
+  const thumbMm = 74;
+  const tk = Math.min(thumbMm / thumbCanvas.width, thumbMm / thumbCanvas.height);
+  doc.addImage(
+    thumbCanvas.toDataURL('image/png'),
+    'PNG',
+    MARGIN,
+    MARGIN + 20,
+    thumbCanvas.width * tk,
+    thumbCanvas.height * tk,
+  );
+
+  // 用量表
+  let x = MARGIN + thumbMm + 12;
+  let y = MARGIN + 22;
+  const lineH = 4.6;
+  const colW = 62;
+
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(7);
+
+  for (const u of stats.usages) {
+    doc.setFillColor(u.bead.rgb[0], u.bead.rgb[1], u.bead.rgb[2]);
+    doc.rect(x, y - 2.6, 3, 3, 'F');
+    doc.setDrawColor(120);
+    doc.setLineWidth(0.1);
+    doc.rect(x, y - 2.6, 3, 3, 'S');
+
+    doc.setTextColor(34);
+    doc.text(u.bead.code, x + 4.2, y);
+    doc.text(`${u.count}`, x + colW - 16, y, { align: 'right' });
+    doc.text(`${(u.ratio * 100).toFixed(1)}%`, x + colW - 3, y, { align: 'right' });
+
+    textStrip(doc, u.bead.nameZh, x + 19, y - 2.9, 3.4, '#444444');
+
+    y += lineH;
+    if (y > PAGE_H - MARGIN) {
+      y = MARGIN + 22;
+      x += colW;
+      if (x + colW > PAGE_W - MARGIN) break;
+    }
+  }
+
+  drawPdfWatermark(doc);
+
+  downloadBlob(filename, doc.output('blob'));
+}

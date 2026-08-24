@@ -4,7 +4,7 @@ import { getPalette } from '../palette/registry';
 import type { Palette } from '../palette/types';
 import { statsToCsv, downloadText } from '../export/csv';
 import { exportSheetPng } from '../export/png';
-import { exportSheetPdf } from '../export/pdf';
+import { exportSheetPdf, exportSheetPdfByBoard } from '../export/pdf';
 import { suggestSubstitutes } from '../model/substitute';
 
 type SortMode = 'count' | 'code';
@@ -131,6 +131,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
       <h2>导出</h2>
       <div class="row"><button class="btn primary" id="pngSheet" data-export>下载图纸 PNG</button></div>
       <div class="row"><button class="btn" id="pdf" data-export>下载分页打印 PDF</button></div>
+      <div class="row"><button class="btn" id="pdfByBoard" data-export>下载按板分页 PDF</button></div>
       <div class="row"><button class="btn" id="pngRound" data-export>下载圆豆预览图</button></div>
       <div class="row"><button class="btn" id="csv" data-export>下载采购清单 CSV</button></div>
     `;
@@ -229,6 +230,12 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
     btn('pdf').addEventListener('click', (e) => {
       void runExport(e.currentTarget as HTMLButtonElement, '排版中', () =>
         exportSheetPdf(s.grid!, palette, s.sheet, `${baseName}.pdf`),
+      );
+    });
+
+    btn('pdfByBoard').addEventListener('click', (e) => {
+      void runExport(e.currentTarget as HTMLButtonElement, '排版中', () =>
+        exportSheetPdfByBoard(s.grid!, palette, s.sheet, `${baseName}-按板.pdf`),
       );
     });
   }
