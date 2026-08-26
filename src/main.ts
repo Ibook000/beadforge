@@ -11,6 +11,8 @@ import { computeStats } from './model/stats';
 import { PatchHistory } from './model/patch';
 import { saveArchive, loadArchive } from './model/persist';
 import { loadImageDataUrl } from './ui/imageLoad';
+import { initActivation } from './auth/activation';
+import { mountActivationUI } from './ui/activationModal';
 
 const store = createStore();
 const history = new PatchHistory();
@@ -415,6 +417,10 @@ async function tryRestore(): Promise<void> {
 }
 
 void tryRestore();
+
+// ---- 激活码系统：恢复本地缓存状态 + 挂载兑换 UI ----
+initActivation();
+mountActivationUI();
 
 // ---- PWA：注册 Service Worker（生产环境启用离线缓存） ----
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

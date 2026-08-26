@@ -3,7 +3,7 @@ import type { Palette } from '../palette/types';
 import { drawSheet, sheetPixelSize, type SheetOptions, type SheetStyle } from '../render/sheet';
 import { computeStats, type GridStats } from '../model/stats';
 import { drawLegendFromStats, legendAreaHeight, type LegendOptions } from './legend';
-import { drawWatermark, ENABLE_WATERMARK, SITE_URL, CONTACT, ensureFontsReady } from './watermark';
+import { drawWatermark, shouldWatermark, SITE_URL, CONTACT, ensureFontsReady } from './watermark';
 import { downloadBlob } from './csv';
 
 /** 浏览器 canvas 上限因平台而异，1600 万像素是各家都吃得下的保守值 */
@@ -159,6 +159,7 @@ export function renderSheetToCanvas(
   palette: Palette,
   opts: SheetOptions,
   legendOpts?: LegendOptions,
+  watermark = shouldWatermark(),
 ): HTMLCanvasElement {
   const size = sheetPixelSize(grid, opts);
   const stats = computeStats(grid, palette);
@@ -201,8 +202,10 @@ export function renderSheetToCanvas(
     );
   }
 
-  // 3. 水印（覆盖在最上层，已由 ENABLE_WATERMARK 宏控制）
-  drawWatermark(ctx, canvas.width, canvas.height, 1);
+  // 3. 水印（覆盖在最上层；watermark 由调用方根据激活状态决定）
+  if (watermark) {
+    drawWatermark(ctx, canvas.width, canvas.height, 1);
+  }
 
   return canvas;
 }
@@ -213,10 +216,11 @@ export async function exportSheetPng(
   opts: SheetOptions,
   filename: string,
 ): Promise<void> {
-  // 等待网页字体加载完成，否则导出 canvas 会用 fallback 字体
+  // 先确认激活状态（未激活 → 本次导出带水印），再等字体
+  const watermark = await shouldWatermark();
   await ensureFontsReady();
   const effective: SheetOptions = { ...opts, cellSize: exportCellSize(grid, opts.style) };
-  const canvas = renderSheetToCanvas(grid, palette, effective, EXPORT_LEGEND);
+  const canvas = renderSheetToCanvas(grid, palette, effective, EXPORT_LEGEND, watermark);
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob) throw new Error('PNG 导出失败：canvas.toBlob 返回空');

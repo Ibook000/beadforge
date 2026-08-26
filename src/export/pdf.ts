@@ -8,7 +8,8 @@ import { computeStats } from '../model/stats';
 import { computeGeometry, formatGeometry } from '../model/geometry';
 import { assignSymbols } from '../palette/symbols';
 import { downloadBlob } from './csv';
-import { WATERMARK, ENABLE_WATERMARK } from './watermark';
+import { WATERMARK } from './watermark';
+import { shouldDrawWatermark } from '../auth/activation';
 
 export interface PageSpec {
   index: number;
@@ -29,9 +30,8 @@ const MARGIN = 12;
 const HEADER_H = 9;
 const FOOTER_H = 8;
 
-/** 在 PDF 页面中央画一个斜体水印（矢量，不再铺满）。受 ENABLE_WATERMARK 开关控制 */
+/** 在 PDF 页面中央画一个斜体水印（矢量，不再铺满）。由调用方按激活状态决定是否调。 */
 function drawPdfWatermark(doc: JsPDF): void {
-  if (!ENABLE_WATERMARK) return;
   doc.setFont('helvetica', 'bolditalic');
   doc.setFontSize(48);
   // 粉红色水印，透明度通过颜色模拟
@@ -255,6 +255,8 @@ export async function exportSheetPdf(
   opts: SheetOptions,
   filename: string,
 ): Promise<void> {
+  // 先确认激活状态（未激活 → 导出带水印），再懒加载 jsPDF
+  const watermark = await shouldDrawWatermark();
   // 懒加载 jsPDF：只在用户点「导出 PDF」时才下载这个 ~830KB 库，首屏不加载
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
@@ -307,7 +309,7 @@ export async function exportSheetPdf(
       p.y0,
     );
 
-    drawPdfWatermark(doc);
+    if (watermark) drawPdfWatermark(doc);
   }
 
   // ---- 末页：总览 + 用量表 ----
@@ -386,7 +388,7 @@ export async function exportSheetPdf(
     }
   }
 
-  drawPdfWatermark(doc);
+  if (watermark) drawPdfWatermark(doc);
 
   downloadBlob(filename, doc.output('blob'));
 }
@@ -408,6 +410,8 @@ export async function exportSheetPdfByBoard(
   opts: SheetOptions,
   filename: string,
 ): Promise<void> {
+  // 先确认激活状态（未激活 → 导出带水印），再懒加载 jsPDF
+  const watermark = await shouldDrawWatermark();
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
   const pegs = BOARD_PEGS[opts.beadSizeMm];
@@ -460,7 +464,7 @@ export async function exportSheetPdfByBoard(
       p.y0,
     );
 
-    drawPdfWatermark(doc);
+    if (watermark) drawPdfWatermark(doc);
   }
 
   // ---- 末页：总览 + 用量表（与普通分页一致） ----
@@ -539,7 +543,7 @@ export async function exportSheetPdfByBoard(
     }
   }
 
-  drawPdfWatermark(doc);
+  if (watermark) drawPdfWatermark(doc);
 
   downloadBlob(filename, doc.output('blob'));
 }

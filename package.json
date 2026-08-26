@@ -19,6 +19,7 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "jspdf": "^4.2.1"
   }
 }

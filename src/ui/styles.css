@@ -1148,3 +1148,96 @@ table.stats tbody tr.hl.brush {
 @media (prefers-reduced-motion: reduce) {
   .bead-logo, .brand-dots span { animation: none; }
 }
+
+/* ===== 激活码兑换（浮动按钮 + 弹窗） ===== */
+.activate-float {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font: 700 14px var(--font-body);
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink), var(--lavender));
+  box-shadow: var(--shadow-tight);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.activate-float:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.activate-float.active {
+  background: linear-gradient(135deg, var(--mint), #6fbf9a);
+}
+
+.activate-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(92, 74, 102, 0.35);
+  backdrop-filter: blur(2px);
+}
+.activate-card {
+  position: relative;
+  width: min(380px, calc(100vw - 40px));
+  background: var(--panel-strong);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px 24px;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+.activate-card h3 {
+  margin: 0 0 10px;
+  font: 700 20px var(--font-hand);
+  color: var(--pink-deep);
+}
+.activate-note {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.activate-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: 600 15px ui-monospace, monospace;
+  letter-spacing: 1px;
+  color: var(--ink);
+  outline: none;
+  margin-bottom: 10px;
+}
+.activate-input:focus { border-color: var(--pink); }
+.activate-msg {
+  min-height: 20px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.activate-msg.ok { color: #2e9e62; }
+.activate-msg.error { color: #e05b5b; }
+.activate-submit {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font: 700 15px var(--font-body);
+  color: #fff;
+  background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+  cursor: pointer;
+}
+.activate-submit:disabled { opacity: .6; cursor: default; }
+.activate-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+.activate-close:hover { color: var(--ink); }

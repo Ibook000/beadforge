@@ -2,6 +2,10 @@ node_modules/
 dist/
 deploy-package/
 .superpowers/
+.claude/
 .DS_Store
 *.log
 .vercel
+.env
+.env.local
+.env.*.local

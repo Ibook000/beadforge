@@ -6,7 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Picabead (拼豆图纸生成器): a browser-only app that turns an uploaded image into a perler-bead pattern grid + bead usage stats. No server, no upload — all processing in the browser. TypeScript + Vite, strict mode, no frontend framework.
 
-## Commands
+## 激活码/去水印系统（2026-08 新增）
+
+- `src/auth/activation.ts` — 前端激活单例：初始化 Supabase 客户端（publishable key），调 RPC `redeem_key(code, deviceId)` 兑换，localStorage 缓存激活状态。核心函数 `shouldDrawWatermark()`（导出前调用）。
+- 数据库端判断逻辑在 `supabase/schema.sql`（`activation_keys` 表 + `SECURITY DEFINER` 函数 `redeem_key`）。**卡密表对客户端零权限**，前端永远拿不到卡密表，也读不到判断逻辑。
+- `src/export/watermark.ts` 的 `shouldWatermark()` 读激活状态；`png.ts`/`pdf.ts` 导出前 `await shouldDrawWatermark()`，未激活则画水印。
+- 环境变量：`.env`（已 gitignore）需 `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`（publishable key，设计为公开）。secret key 只用于本地/管理员生成卡密，绝不放前端。
+- 离线语义：有激活缓存直接放行导出；无缓存时后台验证一次，失败不阻塞导出（下次联网回落为未激活）。
 
 ```bash
 npm run dev        # vite dev server (http://localhost:5173)

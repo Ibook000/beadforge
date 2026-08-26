@@ -1,7 +1,9 @@
 /** 水印常量 —— 所见即所得：网站背景、PNG 导出、PDF 导出三处共用同一份水印文案。 */
 
-// ===== 宏开关：设为 false 即可关闭所有导出水印 =====
-export const ENABLE_WATERMARK = true;
+// ===== 运行时开关 =====
+// 原来是个编译期宏（ENABLE_WATERMARK），现在改为按激活状态动态决定：
+// 已激活（付费解锁）不画水印，未激活画水印。见 src/auth/activation.ts。
+import { isActivated } from '../auth/activation';
 
 export const WATERMARK = 'IBO0OK';
 export const WATERMARK_FONT = '900 56px ui-monospace, "SF Mono", Menlo, monospace';
@@ -11,6 +13,14 @@ export const WATERMARK_COLOR = 'rgba(0, 0, 0, 0.18)';
 /** 导出左上角信息头里的网站与联系方式 */
 export const SITE_URL = 'https://ibook000.github.io/beadforge/';
 export const CONTACT = 'IBO0OK';
+
+/**
+ * 当前是否应该画水印（运行时）：已激活 → 不画；未激活 → 画。
+ * 导出层在调用 drawWatermark 之前先问这个。
+ */
+export function shouldWatermark(): boolean {
+  return !isActivated();
+}
 
 /**
  * 等待网页字体加载完成，确保导出 canvas 用对字体而非 fallback。
@@ -32,6 +42,7 @@ export async function ensureFontsReady(timeoutMs = 2500): Promise<void> {
 
 /**
  * 在画布中央画一个斜置水印（不再铺满重复）。
+ * 注意：这里不再自行判断是否要画 —— 调用方应先查 shouldWatermark()。
  * @param ctx      目标 canvas 上下文
  * @param width    canvas 像素宽
  * @param height   canvas 像素高
@@ -43,8 +54,6 @@ export function drawWatermark(
   height: number,
   scale = 1,
 ): void {
-  if (!ENABLE_WATERMARK) return;
-
   ctx.save();
 
   // 单个水印，字号取画布短边的 14%
