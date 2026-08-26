@@ -33,7 +33,13 @@ jobs:
       # 先跑测试，回归直接拦截
       - run: npm test
 
-      - run: npm run build
+      # 注入激活码系统需要的 Supabase 配置（VITE_ 变量在 build 时被 Vite 内联进产物）。
+      # 值存 GitHub secrets：SUPABASE_URL / SUPABASE_ANON_KEY（publishable key，本就公开）。
+      - name: Build (with Supabase env)
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
