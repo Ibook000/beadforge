@@ -9,3 +9,6 @@ deploy-package/
 .env
 .env.local
 .env.*.local
+# 忽略所有 env 文件，但保留 .env.example 模板（需要提交，供他人参考）
+.env*
+!.env.example

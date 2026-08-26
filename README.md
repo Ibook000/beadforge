@@ -4,9 +4,9 @@
 
 ![Picabead Logo](public/logo.png)
 
-**在线体验**（GitHub Pages 自动部署）：
+**在线体验**：
+- **主站（Vercel）**：https://pindou.9987620.xyz/  👈 推荐访问
 - **GitHub Pages**：https://ibook000.github.io/beadforge/
-- **Vercel**：https://perler-bead-drab.vercel.app
 - **EdgeOne**：`beadforge.zh-cn.edgeone.cool`（需在 EdgeOne 控制台关闭部署保护）
 
 ---
@@ -57,11 +57,20 @@
 - **PDF**：A4 分页打印，带拼接指引与总览用量页，矢量格子不模糊
 - **CSV**：采购清单（色号 / 名称 / RGB / 颗数 / 占比）
 - 导出文件默认用**上传图片的原名**命名
-- 图纸 / 网站背景带 **IBO0OK 水印**
+- **未激活**时导出图纸带 **IBO0OK 水印**（见下方激活码系统）
 
 ### 💾 存档
 - localStorage 自动保存参数与手动修改
 - 刷新 / 关闭浏览器后自动恢复
+
+### 🔑 激活码 / 去水印（2026-08 新增）
+
+- **未激活**：导出 PNG / PDF 带 `IBO0OK` 水印；工具本身完全可用
+- **已激活**：导出无水印（页面右下角「🎁 激活」按钮兑换）
+- **技术**：Supabase 存储卡密 + 数据库端 `redeem_key()` 验证（`SECURITY DEFINER`），卡密表对客户端零权限；前端只用 publishable key
+- **一卡一设备**：一张卡密首次兑换时绑定设备指纹，换设备同码会被拒绝
+- **离线可用**：激活状态缓存在浏览器，断网时仍可导出（不会把用户锁在门外）
+- 架构详见 `supabase/schema.sql` 与 `src/auth/activation.ts`
 
 ---
 
@@ -75,6 +84,19 @@ npm run dev
 浏览器打开 http://localhost:5173
 
 > 本地开发无需先跑 `palettes`——色卡数据已在仓库中（`src/palette/data/*.ts`）。只有需要从上游更新色卡时才运行 `npm run palettes`。
+
+### 环境变量（激活系统）
+
+复制 `.env.example` 为 `.env` 并填入：
+
+```
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_xxxx
+```
+
+- `VITE_` 前缀变量会在构建时被 Vite 内联进产物，部署到任意静态托管都能工作
+- publishable key 设计为公开（可放前端）；secret key 只用于本地生成卡密，**绝不放前端**
+- 不配置这两个变量时激活系统不生效（导出恒带水印），其余功能不受影响
 
 ## 🧪 测试
 
@@ -104,11 +126,20 @@ dist/
 
 因为 `index.html` 很薄（3KB），JS 拆分独立文件，**任何静态托管平台都能正确渲染**（不会像"全内联单文件 900KB"那样被误判为纯文本）。
 
-把 `dist/` 里的**所有文件**一起上传即可。
+把 `dist/` 里的**所有文件**一起上传即可。**前提是构建时已配置 `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`**（见上方环境变量），否则激活系统不生效。
+
+### 三平台部署
+
+| 平台 | 地址 | 部署方式 | env 配置 |
+|------|------|----------|----------|
+| **Vercel（主站）** | https://pindou.9987620.xyz/ | git 连接自动部署 | 控制台 → Settings → Environment Variables 配两个 `VITE_` |
+| **GitHub Pages** | https://ibook000.github.io/beadforge/ | push 到 main 自动构建部署 | GitHub Secrets：`SUPABASE_URL` / `SUPABASE_ANON_KEY`（workflow 已注入）|
+| **EdgeOne** | `beadforge.zh-cn.edgeone.cool` | 手动上传 `dist/`（`deploy-edgeone.ps1`）| 本地构建前设两个 `VITE_` 变量（或靠 `.env`）|
 
 ## ⚙️ CI/CD
 
-`.github/workflows/deploy.yml` 已配置：**push 到 `main` 分支自动构建并部署到 GitHub Pages**。
+- **GitHub Pages**：`.github/workflows/deploy.yml` — push 到 `main` 自动 `npm ci → npm test → npm run build`（注入 Supabase env）→ 部署 Pages
+- **Vercel**：git 连接，push 到 `main` 自动部署到 https://pindou.9987620.xyz/
 
 ## 🎨 设计取舍
 
