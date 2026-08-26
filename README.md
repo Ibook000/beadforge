@@ -7,7 +7,7 @@
 **在线体验**：
 - **主站（Vercel）**：https://pindou.9987620.xyz/  👈 推荐访问
 - **GitHub Pages**：https://ibook000.github.io/beadforge/
-- **EdgeOne**：`beadforge.zh-cn.edgeone.cool`（需在 EdgeOne 控制台关闭部署保护）
+- **EdgeOne**：https://beadforge.zh-cn.edgeone.cool
 
 ---
 

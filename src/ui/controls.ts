@@ -13,7 +13,10 @@ import type { SheetOptions, SheetStyle } from '../render/sheet';
 const PRESETS: Array<[string, number, number]> = [
   ['钥匙扣 20×20', 20, 20],
   ['单板 29×29', 29, 29],
+  ['52×52', 52, 52],
   ['四板 58×58', 58, 58],
+  ['78×78', 78, 78],
+  ['104×104', 104, 104],
   ['大图 100×100', 100, 100],
 ];
 
