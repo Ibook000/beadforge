@@ -3,6 +3,7 @@ dist/
 deploy-package/
 .superpowers/
 .claude/
+.opencode/
 .DS_Store
 *.log
 .vercel

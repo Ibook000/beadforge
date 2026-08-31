@@ -2,6 +2,7 @@
   "name": "pindou-pattern-generator",
   "version": "1.0.0",
   "description": "拼豆图纸生成器 — 上传图片生成拼豆图纸与豆子用量统计",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
