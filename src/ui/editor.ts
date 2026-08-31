@@ -55,7 +55,7 @@ export function mountEditor(
   const describeBrush = (): void => {
     const g = store.get().grid;
     if (eraser) {
-      canvas.title = '🧽 橡皮擦：点击去除豆子（E 切换 · Alt+点击取色）';
+      canvas.title = '橡皮擦：点击去除豆子（E 切换 · Alt+点击取色）';
       return;
     }
     const b = currentBrush();

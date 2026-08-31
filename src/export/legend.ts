@@ -78,15 +78,15 @@ export function drawLegendFromStats(
   ctx.save();
 
   // 标题
-  ctx.fillStyle = '#ff5a8c';
-  ctx.font = '400 30px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = '#2c2c2c';
+  ctx.font = '700 26px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(`图例 · 共 ${usages.length} 色`, originX, originY + TITLE_H / 2);
-  // 标题分隔线（粉色渐变）
+  // 标题分隔线（暖棕色渐变）
   const sep = ctx.createLinearGradient(originX, 0, originX + areaW, 0);
-  sep.addColorStop(0, '#ff8fb0');
-  sep.addColorStop(1, 'rgba(255,143,176,0.1)');
+  sep.addColorStop(0, '#c9a06c');
+  sep.addColorStop(1, 'rgba(201,160,108,0.1)');
   ctx.strokeStyle = sep;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -118,14 +118,14 @@ export function drawLegendFromStats(
     ctx.stroke();
 
     // 色号（粗体等宽）
-    ctx.fillStyle = '#3c4043';
+    ctx.fillStyle = '#2c2c2c';
     ctx.font = '700 22px "SFMono-Regular", ui-monospace, Menlo, "Cascadia Code", monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(u.bead.code, x + SWATCH + GAP, y + SWATCH / 2 - 10);
 
     // 数量（小字灰，放色号下方）
-    ctx.fillStyle = '#9aa0a6';
+    ctx.fillStyle = '#888888';
     ctx.font = '500 16px "Noto Sans SC", "PingFang SC", sans-serif';
     ctx.fillText(`× ${u.count} 颗`, x + SWATCH + GAP, y + SWATCH / 2 + 12);
   }

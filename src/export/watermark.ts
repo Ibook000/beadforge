@@ -58,7 +58,7 @@ export function drawWatermark(
 
   // 单个水印，字号取画布短边的 14%
   const fontSize = Math.max(48, Math.min(width, height) * 0.14 * scale);
-  ctx.font = `700 italic ${fontSize}px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif`;
+  ctx.font = `700 italic ${fontSize}px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
   ctx.fillStyle = WATERMARK_COLOR;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

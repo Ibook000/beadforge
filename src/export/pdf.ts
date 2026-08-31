@@ -34,8 +34,8 @@ const FOOTER_H = 8;
 function drawPdfWatermark(doc: JsPDF): void {
   doc.setFont('helvetica', 'bolditalic');
   doc.setFontSize(48);
-  // 粉红色水印，透明度通过颜色模拟
-  doc.setTextColor(255, 150, 180);
+  // 暖棕色水印，透明度通过颜色模拟
+  doc.setTextColor(180, 160, 130);
   doc.text(WATERMARK, PAGE_W / 2, PAGE_H / 2, { align: 'center', angle: -22 });
   doc.setTextColor(0, 0, 0); // 复位
 }
@@ -287,7 +287,7 @@ export async function exportSheetPdf(
     if (p.row > 0) hints.push(`▲ 上接第 ${p.index - cols + 1} 页`);
     if (p.row < rows - 1) hints.push(`下接第 ${p.index + cols + 1} 页 ▼`);
     if (hints.length > 0) {
-      textStrip(doc, hints.join('　　'), MARGIN, PAGE_H - FOOTER_H, 4.4, '#8a4a54');
+      textStrip(doc, hints.join('　　'), MARGIN, PAGE_H - FOOTER_H, 4.4, '#8a7a6a');
     }
 
     // 图纸主体
@@ -442,7 +442,7 @@ export async function exportSheetPdfByBoard(
     if (p.row > 0) hints.push(`▲ 上接第 ${p.index - cols + 1} 页`);
     if (p.row < rows - 1) hints.push(`下接第 ${p.index + cols + 1} 页 ▼`);
     if (hints.length > 0) {
-      textStrip(doc, hints.join('　　'), MARGIN, PAGE_H - FOOTER_H, 4.4, '#8a4a54');
+      textStrip(doc, hints.join('　　'), MARGIN, PAGE_H - FOOTER_H, 4.4, '#8a7a6a');
     }
 
     // 图纸主体：复用矢量绘制，labelOffset 保证跨页坐标连续

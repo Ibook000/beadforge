@@ -6,6 +6,7 @@ import { statsToCsv, downloadText } from '../export/csv';
 import { exportSheetPng } from '../export/png';
 import { exportSheetPdf, exportSheetPdfByBoard } from '../export/pdf';
 import { suggestSubstitutes } from '../model/substitute';
+import { ICON } from './icons';
 
 type SortMode = 'count' | 'code';
 
@@ -56,8 +57,8 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
     const s = store.get();
     if (!s.grid) {
       root.innerHTML =
-        '<h1>用量统计</h1><div class="empty-hint"><p class="hint-title">✨ 还没有图纸呀</p>' +
-        '<p class="hint-sub">在左边上传图片，就能看到每种颜色要买多少颗豆子啦 ♡</p></div>';
+        '<h1>用量统计</h1><div class="empty-hint"><p class="hint-title">还没有图纸呀</p>' +
+        '<p class="hint-sub">在左边上传图片，就能看到每种颜色要买多少颗豆子啦。</p></div>';
       return;
     }
 
@@ -107,7 +108,7 @@ export function mountStatsPanel(root: HTMLElement, store: Store, h: StatsPanelHa
 
     // 缺色汇总提示条
     const subBanner = subs.length > 0
-      ? `<div class="sub-banner">⚠️ 你没有其中的 ${subs.length} 种色，已标"缺"。点开行查看替代色推荐</div>`
+      ? `<div class="sub-banner">${ICON.alert(16)}<span>你没有其中的 ${subs.length} 种色，已标"缺"。点开行查看替代色推荐</span></div>`
       : '';
 
     root.innerHTML = `
@@ -262,7 +263,7 @@ function renderDetail(
 
   const subBlock = sub && sub.candidates.length > 0
     ? `<div class="sub-section">
-        <div class="sub-title">🤔 没有此色？最接近的替代色（CIEDE2000）：</div>
+        <div class="sub-title">没有此色？最接近的替代色（CIEDE2000）：</div>
         ${sub.candidates.map((c) => `
           <div class="sub-cand">
             <span class="dot" style="background:${c.bead.hex}"></span>

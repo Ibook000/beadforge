@@ -1,12 +1,20 @@
 /**
  * 激活码兑换弹窗。
  *
- * 浮动按钮常驻（右上角）：未激活显示「🎁 激活」，已激活显示「✦ 已激活」。
+ * 浮动按钮常驻（右下角）：未激活显示票据图标 +「激活」，已激活显示勾选图标 +「已激活」。
  * 点击打开 modal：输入卡密 → 调 redeem() → 反馈结果。
  * 依赖 activation.ts 的单例状态 + onActivationChange 订阅。
  */
 
 import { isActivated, onActivationChange, redeem } from '../auth/activation';
+import { ICON } from './icons';
+
+/** 浮动按钮文字：未激活=票据图标+激活，已激活=勾选图标+已激活。提交成功态复用。 */
+function renderLabel(active: boolean): string {
+  return active
+    ? `${ICON.check()}<span>已激活</span>`
+    : `${ICON.ticket()}<span>激活</span>`;
+}
 
 export function mountActivationUI(): void {
   // 常驻浮动按钮
@@ -14,7 +22,7 @@ export function mountActivationUI(): void {
   btn.id = 'activateBtn';
   btn.className = 'activate-float';
   btn.title = '激活码 / 去水印';
-  btn.textContent = isActivated() ? '✦ 已激活' : '🎁 激活';
+  btn.innerHTML = renderLabel(isActivated());
   document.body.appendChild(btn);
 
   // modal 容器（懒创建，点击才插入 DOM）
@@ -22,7 +30,7 @@ export function mountActivationUI(): void {
 
   function syncLabel(): void {
     const active = isActivated();
-    btn.textContent = active ? '✦ 已激活' : '🎁 激活';
+    btn.innerHTML = renderLabel(active);
     btn.classList.toggle('active', active);
   }
   onActivationChange(syncLabel);
@@ -42,11 +50,11 @@ export function mountActivationUI(): void {
     const active = isActivated();
     modal.innerHTML = `
       <div class="activate-card">
-        <button class="activate-close" aria-label="关闭">✕</button>
-        <h3>${active ? '✦ 已激活' : '🎁 激活码兑换'}</h3>
+        <button class="activate-close" aria-label="关闭">${ICON.close(16)}</button>
+        <h3>${active ? `${ICON.check()}<span>已激活</span>` : `${ICON.ticket()}<span>激活码兑换</span>`}</h3>
         ${
           active
-            ? '<p class="activate-note">本设备已激活，导出无水印。<br>谢谢支持 🧸</p>'
+            ? '<p class="activate-note">本设备已激活，导出无水印。<br>谢谢支持</p>'
             : `<p class="activate-note">购买后输入卡密，解锁<strong>无水印导出</strong>（PNG / PDF / CSV）。<br>一张卡密绑定一台设备。</p>
                <input class="activate-input" type="text" placeholder="粘贴卡密（如 ABCD-EFGH-…）" autocomplete="off" spellcheck="false">
                <div class="activate-msg" role="status"></div>
@@ -78,7 +86,7 @@ export function mountActivationUI(): void {
         msg.textContent = message;
         msg.className = ok ? 'activate-msg ok' : 'activate-msg error';
         if (ok) {
-          submit.textContent = '✓ 已激活';
+          submit.innerHTML = renderLabel(true);
           setTimeout(close, 1200);
         } else {
           submit.disabled = false;

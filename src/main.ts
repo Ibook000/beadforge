@@ -1,4 +1,5 @@
 import './ui/styles.css';
+import { ICON } from './ui/icons';
 import { createStore } from './ui/state';
 import { mountControls, mountColorWarning } from './ui/controls';
 import { mountPalettePanel } from './ui/palettePanel';
@@ -27,6 +28,55 @@ const canvas = document.createElement('canvas');
 canvas.style.display = 'none';
 stage.appendChild(canvas);
 const preview = createPreview(canvas, stage);
+
+// ---------------------------------------------------------------- 落地页 ↔ 工具页切换
+
+const landingEl = document.getElementById('landing') as HTMLElement;
+const appEl = document.getElementById('app') as HTMLElement;
+const backToHomeBtn = document.getElementById('backToHome') as HTMLButtonElement | null;
+const ctaStartBtn = document.getElementById('ctaStart') as HTMLButtonElement | null;
+const landingUploadBtn = document.getElementById('landingUpload') as HTMLButtonElement | null;
+const navToolLink = document.getElementById('navTool') as HTMLElement | null;
+
+function showTool(): void {
+  landingEl.style.display = 'none';
+  appEl.style.display = '';
+  document.body.style.background = '';
+  // 触发重绘，确保画布尺寸正确
+  requestAnimationFrame(() => {
+    const s = store.get();
+    if (s.grid) renderPreview();
+  });
+}
+
+function showLanding(): void {
+  landingEl.style.display = '';
+  appEl.style.display = 'none';
+}
+
+// "开始创作" → 进入工具页并触发上传
+ctaStartBtn?.addEventListener('click', () => {
+  showTool();
+  // 触发文件选择
+  const fileInput = document.getElementById('file') as HTMLInputElement | null;
+  fileInput?.click();
+});
+
+// Header 上传按钮 → 进入工具页并触发上传
+landingUploadBtn?.addEventListener('click', () => {
+  showTool();
+  const fileInput = document.getElementById('file') as HTMLInputElement | null;
+  fileInput?.click();
+});
+
+// 导航栏 "图纸生成" → 进入工具页
+navToolLink?.addEventListener('click', (e) => {
+  e.preventDefault();
+  showTool();
+});
+
+// 工具页 "返回首页" 按钮
+backToHomeBtn?.addEventListener('click', () => showLanding());
 
 // ---------------------------------------------------------------- 管线
 
@@ -209,6 +259,10 @@ function renderFsSidebar(): void {
   const stats = computeStats(s.grid, palette);
   const highlight = s.highlightBead;
 
+  // 头部标题带上色数，一进面板就知道共多少色
+  const titleEl = fsSidebar.querySelector<HTMLElement>('.fs-sidebar-title');
+  if (titleEl) titleEl.textContent = `颜色选择 · ${stats.colorCount} 色`;
+
   fsSidebarList.innerHTML = stats.usages
     .map(
       (u) =>
@@ -237,12 +291,12 @@ function setFullscreen(on: boolean): void {
     // stage 撑满整屏（canvas 留原地），叠加顶栏 + 右侧面板
     stage.classList.add('fullscreen');
     fsTopbar.style.display = 'flex';
-    fsSidebar.style.display = 'flex';
+    fsSidebar.style.display = 'block'; // 侧栏是纵向文档流（头部在上 + 列表在下），不能用 flex 行
     fsZoom = 1; fsPanX = 0; fsPanY = 0;
     applyFsTransform();
     renderFsSidebar();
     fsBtn.title = '退出全屏 (Esc)';
-    fsBtn.textContent = '✕';
+    fsBtn.innerHTML = ICON.close(16);
     requestAnimationFrame(() => renderPreview());
   } else {
     stage.classList.remove('fullscreen');
@@ -250,7 +304,7 @@ function setFullscreen(on: boolean): void {
     fsSidebar.style.display = 'none';
     canvas.style.transform = '';
     fsBtn.title = '全屏拼豆模式';
-    fsBtn.textContent = '⛶';
+    fsBtn.innerHTML = ICON.expand(16);
     requestAnimationFrame(() => renderPreview());
   }
 }
@@ -365,7 +419,7 @@ fsZoomOut.addEventListener('click', () => { fsZoom = Math.max(0.25, fsZoom - 0.1
 // 关闭按钮
 fsClose.addEventListener('click', () => setFullscreen(false));
 
-// 全屏按钮（stage 内的 ⛶）
+// 全屏按钮（stage 内的展开图标）
 fsBtn.addEventListener('click', () => setFullscreen(!store.get().fullscreen));
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && store.get().fullscreen) setFullscreen(false);
@@ -397,6 +451,9 @@ async function tryRestore(): Promise<void> {
 
   const when = new Date(a.savedAt).toLocaleString('zh-CN');
   if (!confirm(`发现 ${when} 的编辑存档（${a.imageName || '未命名'}），要恢复吗？`)) return;
+
+  // 有存档恢复 → 直接进入工具页
+  showTool();
 
   store.set({ build: a.build, sheet: a.sheet });
   history.restore(a.patch);

@@ -27,7 +27,7 @@ export const DEFAULT_SHEET_OPTIONS: SheetOptions = {
   showBoardLines: false,
   showMajorLines: true,
   beadSizeMm: 5,
-  emptyColor: '#F6F6FA',
+  emptyColor: '#F5F0E8',
 };
 
 /**
@@ -45,7 +45,7 @@ export interface SheetHighlight {
 }
 
 /** 同色格子的呼吸高亮色（淡粉） */
-const HIGHLIGHT_TINT = 'rgba(255, 143, 176,';
+const HIGHLIGHT_TINT = 'rgba(201, 160, 108,';
 /** 其它格子的变淡白色罩 */
 const DIMMED_TINT = 'rgba(255, 255, 255, 0.6)';
 

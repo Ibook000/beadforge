@@ -9,6 +9,7 @@ import type { SampleMode } from '../pipeline/sample';
 import type { DitherMode } from '../color/dither';
 import type { DespeckleLevel } from '../pipeline/despeckle';
 import type { SheetOptions, SheetStyle } from '../render/sheet';
+import { ICON } from './icons';
 
 const PRESETS: Array<[string, number, number]> = [
   ['钥匙扣 20×20', 20, 20],
@@ -30,11 +31,11 @@ export interface ControlsHandlers {
 export function mountControls(root: HTMLElement, store: Store, h: ControlsHandlers): void {
   const section = document.createElement('div');
   section.innerHTML = `
-    <h1>开始拼豆吧 ♡</h1>
+    <h1>开始拼豆吧</h1>
 
     <input type="file" id="file" accept="image/*" hidden>
-    <button class="btn primary" id="upload" style="width:100%;padding:11px;font-size:15px">🌸 选择一张图片</button>
-    <div class="readout" id="fileName">还没有选择图片呀(｡•ㅅ•｡)</div>
+    <button class="btn primary" id="upload" style="width:100%;padding:11px;font-size:15px">${ICON.upload()}<span>选择一张图片</span></button>
+    <div class="readout" id="fileName">还没有选择图片</div>
 
     <details open class="group">
       <summary>颗粒度</summary>
@@ -115,13 +116,13 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
 
     <details class="group">
       <summary>编辑工具</summary>
-      <label class="inline"><input type="checkbox" id="eraserToggle"> 🧽 橡皮擦（点击去豆）</label>
+      <label class="inline"><input type="checkbox" id="eraserToggle">${ICON.eraser(16)}<span>橡皮擦（点击去豆）</span></label>
     </details>
 
     <details class="group">
       <summary>文字工具</summary>
       <div class="text-tool">
-        <input type="text" id="textInput" placeholder="输入文字（如 我爱你♡）" maxlength="20">
+        <input type="text" id="textInput" placeholder="输入文字（如：我爱你）" maxlength="20">
         <label>字号 <b id="textSizeLabel">80</b> px</label>
         <input type="range" id="textSize" min="40" max="200" step="10" value="80">
         <label>字体</label>
@@ -130,7 +131,7 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
           <option value='700 __SIZE__px "Noto Sans SC", "Microsoft YaHei", sans-serif'>Noto 黑体</option>
           <option value='700 __SIZE__px ui-monospace, "SF Mono", Menlo, monospace'>等宽体</option>
         </select>
-        <button class="btn primary text-gen-btn" id="textGen">📝 生成文字图纸</button>
+        <button class="btn primary text-gen-btn" id="textGen">${ICON.type()}<span>生成文字图纸</span></button>
       </div>
     </details>
   `;
@@ -163,7 +164,7 @@ export function mountControls(root: HTMLElement, store: Store, h: ControlsHandle
       })
       .finally(() => {
         uploadBtn.disabled = false;
-        uploadBtn.textContent = '🌸 选择一张图片';
+        uploadBtn.innerHTML = `${ICON.upload()}<span>选择一张图片</span>`;
         fileInput.value = ''; // 允许重复选同一个文件
       });
   }
@@ -379,7 +380,6 @@ export function mountColorWarning(root: HTMLElement): void {
   const el = document.createElement('div');
   el.className = 'readout note';
   el.innerHTML =
-    '⚠️ 屏幕颜色与实物豆子存在色差（塑料材质、批次、光照、显示器校准都有影响）。' +
-    '<b>色号是权威标识</b>，颜色仅供参考，建议对照实体色卡确认。';
+    `${ICON.alert(16)}<span>屏幕颜色与实物豆子存在色差（塑料材质、批次、光照、显示器校准都有影响）。<b>色号是权威标识</b>，颜色仅供参考，建议对照实体色卡确认。</span>`;
   root.appendChild(el);
 }

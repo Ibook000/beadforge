@@ -40,8 +40,8 @@ const INFO_PAD = 20;
 /**
  * 在画布顶部画信息头：网站、联系方式，以及网格尺寸 / 色卡名 / 豆子总数 / 颜色数。
  *
- * 排版：左侧品牌区（ZCOOL 手写体网站名 + 联系方式），右侧四宫格统计卡
- * （每格一个粉色圆点 + 标签 + 数值）。信息头是导出图的「名片」。
+ * 排版：左侧品牌区（网站名 + 联系方式），右侧四宫格统计卡
+ * （每格一个暖色圆点 + 标签 + 数值）。信息头是导出图的「名片」。
  */
 function drawInfoHeader(
   ctx: CanvasRenderingContext2D,
@@ -52,37 +52,37 @@ function drawInfoHeader(
 ): void {
   ctx.save();
 
-  // 顶部品牌彩条（渐变粉）
+  // 顶部品牌彩条（暖棕色渐变）
   const bar = ctx.createLinearGradient(0, 0, width, 0);
-  bar.addColorStop(0, '#ff6fa5');
-  bar.addColorStop(1, '#ffb3c8');
+  bar.addColorStop(0, '#c9a06c');
+  bar.addColorStop(1, '#d4b896');
   ctx.fillStyle = bar;
   ctx.fillRect(0, 0, width, 8);
 
-  // ---- 左侧：网站名（ZCOOL 手写体）+ 联系方式 ----
+  // ---- 左侧：网站名 + 联系方式 ----
   const leftX = INFO_PAD;
   const topY = INFO_PAD + 4;
 
-  ctx.fillStyle = '#ff5a8c';
-  ctx.font = '400 38px "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = '#2c2c2c';
+  ctx.font = '700 32px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText('Picabead 拼豆图纸', leftX, topY);
+  ctx.fillText('拼豆图纸', leftX, topY);
 
-  ctx.fillStyle = '#9aa0a6';
-  ctx.font = '500 18px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText(SITE_URL, leftX, topY + 46);
-
-  ctx.fillStyle = '#bbb';
+  ctx.fillStyle = '#888888';
   ctx.font = '500 16px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText(`作者 @ ${CONTACT}`, leftX, topY + 72);
+  ctx.fillText(SITE_URL, leftX, topY + 42);
+
+  ctx.fillStyle = '#aaaaaa';
+  ctx.font = '400 14px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillText(`作者 @ ${CONTACT}`, leftX, topY + 66);
 
   // ---- 右侧：四宫格统计卡 ----
   const cards = [
-    { label: '网格', value: `${grid.width} × ${grid.height}`, color: '#ff6fa5' },
-    { label: '色卡', value: palette.label, color: '#7eb6ff' },
-    { label: '豆子', value: `${stats.totalBeads} 颗`, color: '#8ecbff' },
-    { label: '颜色', value: `${stats.colorCount} 种`, color: '#b58cf6' },
+    { label: '网格', value: `${grid.width} × ${grid.height}`, color: '#c9a06c' },
+    { label: '色卡', value: palette.label, color: '#8fa68a' },
+    { label: '豆子', value: `${stats.totalBeads} 颗`, color: '#b8976e' },
+    { label: '颜色', value: `${stats.colorCount} 种`, color: '#7a9a8a' },
   ];
 
   const cardW = 168;
@@ -102,9 +102,9 @@ function drawInfoHeader(
     const x = cardsX + col * (cardW + cardGap);
     const y = cardsY + row * (cardH + cardGap);
 
-    // 卡片底色（淡粉圆角）
+    // 卡片底色（暖米色圆角）
     roundedRect(ctx, x, y, cardW, cardH, 10);
-    ctx.fillStyle = '#fdf2f6';
+    ctx.fillStyle = '#f5f0e8';
     ctx.fill();
 
     // 左侧圆点
@@ -114,13 +114,13 @@ function drawInfoHeader(
     ctx.fill();
 
     // 标签（小字灰）
-    ctx.fillStyle = '#9aa0a6';
+    ctx.fillStyle = '#888888';
     ctx.font = '500 15px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(c.label, x + 34, y + cardH / 2 - 9);
 
     // 数值（大字深色）
-    ctx.fillStyle = '#3c4043';
+    ctx.fillStyle = '#2c2c2c';
     ctx.font = '700 19px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.fillText(c.value, x + 34, y + cardH / 2 + 11);
   });
