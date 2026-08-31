@@ -78,6 +78,10 @@ Five palettes (MARD 291, Artkal S/C, Perler, Hama) as committed data files in `s
 - `.github/workflows/deploy.yml`: push to `main` → `npm ci → npm test → npm run build → deploy to GitHub Pages`. Vercel is git-connected for auto-deploy too.
 - `public/sw.js` (Service Worker v2): **network-first for HTML, cache-first for static assets**. SW v1 cached HTML cache-first and served stale HTML that referenced new chunk filenames → 404. Don't go back to cache-first for HTML.
 
+## Skills
+
+- **像素级网页复刻**：当需要基于参考图做像素级 UI 复刻、视觉重构或素材替换时，先读 `PIXELCLONE.zh.md` 再执行任务。
+
 ## Conventions
 
 - Strict TypeScript. `BeadGrid.cells` is `Uint16Array` (max palette 291 > 255). All consumers must check `mask[i] === 1` before reading `cells[i]` — empty cells have meaningless `cells` values.
