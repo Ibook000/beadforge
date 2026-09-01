@@ -938,10 +938,6 @@ table.stats .missing-tag {
 }
 
 table.stats tr.detail-row {
-  display: none;
-}
-
-table.stats tr.detail-row.open {
   display: table-row;
 }
 
